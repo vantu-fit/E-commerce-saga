@@ -18,6 +18,14 @@ type Category struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+type Idempotency struct {
+	ID         uuid.UUID `json:"id"`
+	ProductID  uuid.UUID `json:"product_id"`
+	Quantity   int32     `json:"quantity"`
+	Rollbacked bool      `json:"rollbacked"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
 type Product struct {
 	ID          uuid.UUID `json:"id"`
 	IDCategory  uuid.UUID `json:"id_category"`

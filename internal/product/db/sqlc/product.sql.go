@@ -143,6 +143,28 @@ func (q *Queries) GetProductCategory(ctx context.Context, name string) ([]GetPro
 	return items, nil
 }
 
+const getProductForUpdate = `-- name: GetProductForUpdate :one
+SELECT id, id_category, id_account, name, description, brand_name, price, inventory, updated_at, created_at FROM products WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetProductForUpdate(ctx context.Context, id uuid.UUID) (Product, error) {
+	row := q.db.QueryRow(ctx, getProductForUpdate, id)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.IDCategory,
+		&i.IDAccount,
+		&i.Name,
+		&i.Description,
+		&i.BrandName,
+		&i.Price,
+		&i.Inventory,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const upadateProduct = `-- name: UpadateProduct :one
 UPDATE products
 SET

@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  redis-node-1:
+    container_name: redis-node-1
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-1:/data
+    ports:
+      - "7000:7000"
+      - "17000:17000"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7000", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]

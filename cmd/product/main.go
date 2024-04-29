@@ -8,11 +8,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vantu-fit/saga-pattern/cmd/product/config"
+	"github.com/vantu-fit/saga-pattern/internal/cache"
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/product/grpc"
 	"github.com/vantu-fit/saga-pattern/internal/product/http"
@@ -47,6 +49,8 @@ func main() {
 		log.Fatal().Msgf("Parse config: %v", err)
 	}
 
+	log.Debug().Msgf("redis addr: %s",  cfg.RedisCache.Address[0])
+
 	// create context for gracefull shutdown
 	doneCh := make(chan struct{}) // for graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), interuptSignals...)
@@ -64,19 +68,34 @@ func main() {
 
 	store := db.NewStore(conn)
 
-	// localCache, err := cache.NewLocalCache(ctx, cfg.LocalCache.ExpirationTime)
-	// if err != nil {
-	// 	log.Fatal().Msgf("Create local cache: %v", err)
-	// }
+	// create local cache
+	localCache, err := cache.NewLocalCache(ctx, cfg.LocalCache.ExpirationTime)
+	if err != nil {
+		log.Fatal().Msgf("Create local cache: %v", err)
+	}
 
-	// redisClient := redis.NewClusterClient(&redis.ClusterOptions{
-	// 	Addrs:         cfg.RedisCache.Address,
-	// 	Password:      cfg.RedisCache.Password,
-	// 	PoolSize:      cfg.RedisCache.PoolSize,
-	// 	MaxRetries:    cfg.RedisCache.MaxRetries,
-	// 	ReadOnly:      true,
-	// 	RouteRandomly: true,
-	// })
+	// create redis cache
+	redisClient := redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:         cfg.RedisCache.Address,
+		Password:      cfg.RedisCache.Password,
+		PoolSize:      cfg.RedisCache.PoolSize,
+		MaxRetries:    cfg.RedisCache.MaxRetries,
+		ReadOnly:      true,
+		RouteRandomly: true,
+	})
+
+	// check redis connection
+	err = redisClient.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
+		return shard.Ping(ctx).Err()
+	})
+	if err != nil {
+		log.Fatal().Msgf("Redis ping: %v", err)
+	}
+
+	redisCache := cache.NewRedisCache(redisClient, time.Duration(cfg.RedisCache.ExpirationTime)*time.Second)
+
+	_ = localCache
+	_ = redisCache
 
 	// create grpc client
 	grpcClient := grpc.NewClient(cfg)
@@ -96,6 +115,7 @@ func main() {
 
 	// run grpc server
 	go func() {
+		log.Info().Msgf("GRPC server is running on port %s", cfg.GRPC.Port)
 		if err := grpcServer.Run(); err != nil {
 			log.Fatal().Msgf("Run grpc server: %v", err)
 		}

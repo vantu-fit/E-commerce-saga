@@ -8,6 +8,8 @@ protoc:
     --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
 	--grpc-gateway_out=pb --grpc-gateway_opt paths=source_relative \
 	proto/*.proto
+redis:
+	docker compose -f ./docker-compose-redis.yml up
 
 account:
 	go run ./cmd/account/main.go
@@ -28,6 +30,12 @@ migrate-product-down:
 	migrate -path internal/product/db/migration -database "$(PRODUCT_DB_URL)" -verbose down
 sqlc-product:
 	sqlc generate -f sqlc/product.yml
+
+test:
+	pg_ctl start
+	make redis
+	make account
+	make product
 
 
 	

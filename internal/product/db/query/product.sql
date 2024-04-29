@@ -17,6 +17,9 @@ SELECT * FROM products JOIN categories ON products.id_category = categories.id W
 -- name: GetProductByID :one
 SELECT * FROM products WHERE id = $1;
 
+-- name: GetProductForUpdate :one
+SELECT * FROM products WHERE id = $1 FOR UPDATE;
+
 -- name: UpadateProduct :one
 UPDATE products
 SET
