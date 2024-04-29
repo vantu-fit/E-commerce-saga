@@ -1,0 +1,14 @@
+FROM golang:1.20-alpine3.18 AS builder
+WORKDIR /app
+COPY . .
+RUN go build -o main ./cmd/account/main.go
+
+FROM alpine:3.18
+WORKDIR /app
+COPY --from=builder /app/main .
+RUN mkdir -p cmd/account/config
+COPY ./cmd/account/config/docker.yml ./cmd/account/config/config.yml
+COPY ./internal/account/db/migration ./internal/account/db/migration
+
+EXPOSE 8080 50051
+ENTRYPOINT ["/app/main"]

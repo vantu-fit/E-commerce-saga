@@ -1,0 +1,267 @@
+version: "3.9"
+services:
+  account_db:
+    container_name: account_db
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=account_db
+    networks:
+      - api_network
+    volumes:
+      - ./data/account_db:/var/lib/postgresql/data
+    
+  product_db:
+    container_name: product_db
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=product_db
+    networks:
+      - api_network
+    volumes:
+      - ./data/product_db:/var/lib/postgresql/data
+  
+
+  redis-node-1:
+    container_name: redis-node-1
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-1:/data
+    ports:
+      - "7000:7000"
+      - "17000:17000"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7000", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    networks:
+      - api_network
+
+  redis-node-2:
+    container_name: redis-node-2
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-2:/data
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7001", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    networks:
+      - api_network
+
+  redis-node-3:
+    container_name: redis-node-3
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-3:/data
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7002", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    networks:
+      - api_network
+
+  redis-node-4:
+    container_name: redis-node-4
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-4:/data
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7003", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    networks:
+      - api_network
+
+  redis-node-5:
+    container_name: redis-node-5
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-5:/data
+    ports:
+      - "7004:7004"
+      - "17004:17004"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7004", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    networks:
+      - api_network
+
+  redis-node-6:
+    container_name: redis-node-6
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-6:/data
+    ports:
+      - "7005:7005"
+      - "17005:17005"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7005", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    networks:
+      - api_network
+
+  redis-cluster-creator:
+    container_name: redis-cluster-creator
+    image: redis/redis-stack-server:latest
+    command: 'redis-cli -p 7000 --cluster create redis-node-1:7000 redis-node-2:7001 redis-node-3:7002 redis-node-4:7003 redis-node-5:7004 redis-node-6:7005 --cluster-replicas 1 --cluster-yes'
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+    networks:
+      - api_network
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.2
+    container_name: zookeeper
+    restart: always
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zoo1:2888:3888
+    volumes:
+      - ./data/zookeeper/data:/data
+      - ./data/zookeeper/datalog:/datalog
+    networks:
+      - api_network
+
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:7.3.2
+    hostname: kafka
+    ports:
+      - "9091:9091"
+      - "29091:29091"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19091,EXTERNAL://${DOCKER_HOST_IP:-host.docker.internal}:9091,DOCKER://host.docker.internal:29091
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    volumes:
+      - ./data/kafka/data:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+    networks:
+        - api_network
+
+
+  init-kafka:
+    container_name: init-kafka
+    image: confluentinc/cp-kafka:7.3.2
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:29091 --list
+      
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic purchase --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic purchase-result --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic update-product-inventory --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-product-inventory --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic create-order --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-order --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic create-payment --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-payment --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic reply --replication-factor 1 --partitions 1
+      
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29091 --list
+      "
+    depends_on:
+      - kafka
+    networks:
+      - api_network
+
+    
+  reverse-proxy:
+    container_name: reverse-proxy
+    image: traefik:v2.11
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - api_network
+    
+  account_service:
+    container_name: account_service
+    build:
+      context: .
+      dockerfile: ./build/docker/dockerfile-account
+    depends_on:
+      - account_db
+    command: ["/app/main"]
+    networks:
+        - api_network
+    restart:
+      on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.account_service-http.rule=PathPrefix(`/api/v1/account`)"
+      - "traefik.http.routers.account_service-http.entrypoints=web"
+      - "traefik.http.routers.account_service-http.service=account_service-http"
+      - "traefik.http.services.account_service-http.loadbalancer.server.port=8080"
+
+  # product_service:
+  #   container_name: product_service
+  #   build:
+  #     context: .
+  #     dockerfile: ./build/docker/Dockerfile-product
+  #   depends_on:
+  #     - product_db
+  #     - init-kafka
+  #     - redis-cluster-creator
+  #   command: ["/app/main"]
+  #   networks:
+  #       - api_network
+  #   restart:
+  #       on-failure
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.product_service-http.rule=PathPrefix(`/api/v1/products`) || PathPrefix(`/api/v1/categories`)"
+  #     - "traefik.http.routers.product_service-http.entrypoints=web"
+  #     - "traefik.http.routers.product_service-http.service=product_service-http"
+  #     - "traefik.http.services.product_service-http.loadbalancer.server.port=8080"
+
+networks:
+  api_network:
+    driver: bridge

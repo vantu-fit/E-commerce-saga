@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package pb;
+
+// Removed the import statement for "account.proto"
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vantu-fit/saga-pattern/pb";
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Simple Bank API";
+      version: "1.0";
+      contact: {
+        name: "Vantufit";
+        url: "https://github.com/grpc-ecosystem/grpc-gateway";
+        email: "dotu30257@gmail.com";
+      };
+    };
+};
+
+message Category {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+
+message Product {
+  string id = 1;
+  string category_id = 2;
+  string id_account = 3;
+  string name = 4;
+  string description = 5;
+  string brand_name = 6;
+  int32 price = 7;
+  int32 inventory = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  google.protobuf.Timestamp created_at = 10;
+}
+
+message CreateProductRequest {
+  string category_id = 1;
+  string name = 2;
+  string description = 3;
+  string brand_name = 4;
+  int32 price = 5;
+  int32 inventory = 6;
+}
+
+message CreateProductResponse {
+  Product product = 1;
+}
+
+message CreateCategoryRequest {
+  string name = 1;
+  string description = 2;
+}
+
+message CreateCategoryResponse {
+  Category categoty = 1 ;
+}
+
+message GetProductByIDRequest {
+  string id = 1;
+}
+
+message GetProductByIDResponse {
+  Product product = 1;
+}
+
+message UpdateProductRequest {
+  string id = 1;
+  optional string category_id = 2;
+  optional string name = 3;
+  optional string description = 4;
+  optional string brand_name = 5;
+  optional int32 price = 6;
+  optional int32 inventory = 7;
+}
+
+message UpdateProductResponse {
+  Product product = 1;
+}
+
+
+service ServiceProduct {
+    rpc CreateProduct (CreateProductRequest) returns (CreateProductResponse){
+        option (google.api.http) = {
+                  post: "/api/v1/products"
+                  body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to create a new product.";
+          summary: "Create new product";
+        };
+    }
+
+    rpc CreateCategory (CreateCategoryRequest) returns (CreateCategoryResponse){
+        option (google.api.http) = {
+                  post: "/api/v1/categories"
+                  body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to create a new category.";
+          summary: "Create new category";
+        };
+    }
+
+    rpc GetProductByID (GetProductByIDRequest) returns (GetProductByIDResponse){
+        option (google.api.http) = {
+                  get: "/api/v1/products/{id}"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to get product by id.";
+          summary: "Get product by id";
+        };
+    }
+
+    rpc UpdateProduct (UpdateProductRequest) returns (UpdateProductResponse){
+        option (google.api.http) = {
+                  put: "/api/v1/products"
+                  body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to update product.";
+          summary: "Update product";
+        };
+    }
+}
