@@ -36,7 +36,7 @@ func (server *Server) UpdateProduct(ctx context.Context, req *pb.UpdateProductRe
 	}
 	ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", value[0])
 	// end transform context to metadata
-	authResponse, err := server.grpcClient.accountClient.Auth(ctx, &emptypb.Empty{})
+	authResponse, err := server.grpcClient.AccountClient.Auth(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, err
 	}

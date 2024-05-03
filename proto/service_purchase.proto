@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package pb;
+
+// Removed the import statement for "account.proto"
+// import "google/api/annotations.proto";
+// import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vantu-fit/saga-pattern/pb";
+
+message UUID {
+    string value = 1;
+}
+
+message PurchaseOrderItem {
+    UUID product_id = 1;
+    uint64 quantity = 2;
+  }
+  
+  message Order {
+    uint64 customer_id = 1;
+    repeated PurchaseOrderItem order_items = 2;
+  }
+  
+  message Payment {
+    string currency_code = 1;
+    uint64 amount = 2;
+  }
+  
+  message Purchase {
+    Order order = 1;
+    Payment payment = 2;
+  }
+  
+  // purchase commands
+  message CreatePurchaseRequest {
+    UUID purchase_id = 1;
+    Purchase purchase = 2;
+    google.protobuf.Timestamp timestamp = 3;
+  }
+  
+  message CreatePurchaseResponse {
+    UUID purchase_id = 1;
+    Purchase purchase = 2;
+    bool success = 3;
+    string error_message = 4;
+    google.protobuf.Timestamp timestamp = 5;
+  }
+  
+  message RollbackPurchaseRequest {
+    UUID purchase_id = 1;
+    google.protobuf.Timestamp timestamp = 3;
+  }
+  
+  message RollbackPurchaseResponse {
+    UUID purchase_id = 1;
+    bool success = 2;
+    string error_message = 3;
+    google.protobuf.Timestamp timestamp = 4;
+  }
+  

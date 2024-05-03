@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	ServiceProduct_Ping_FullMethodName           = "/pb.ServiceProduct/Ping"
 	ServiceProduct_CreateProduct_FullMethodName  = "/pb.ServiceProduct/CreateProduct"
 	ServiceProduct_CreateCategory_FullMethodName = "/pb.ServiceProduct/CreateCategory"
 	ServiceProduct_GetProductByID_FullMethodName = "/pb.ServiceProduct/GetProductByID"
@@ -29,6 +30,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceProductClient interface {
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error)
 	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CreateCategoryResponse, error)
 	GetProductByID(ctx context.Context, in *GetProductByIDRequest, opts ...grpc.CallOption) (*GetProductByIDResponse, error)
@@ -41,6 +43,15 @@ type serviceProductClient struct {
 
 func NewServiceProductClient(cc grpc.ClientConnInterface) ServiceProductClient {
 	return &serviceProductClient{cc}
+}
+
+func (c *serviceProductClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	out := new(PingResponse)
+	err := c.cc.Invoke(ctx, ServiceProduct_Ping_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *serviceProductClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error) {
@@ -83,6 +94,7 @@ func (c *serviceProductClient) UpdateProduct(ctx context.Context, in *UpdateProd
 // All implementations must embed UnimplementedServiceProductServer
 // for forward compatibility
 type ServiceProductServer interface {
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error)
 	CreateCategory(context.Context, *CreateCategoryRequest) (*CreateCategoryResponse, error)
 	GetProductByID(context.Context, *GetProductByIDRequest) (*GetProductByIDResponse, error)
@@ -94,6 +106,9 @@ type ServiceProductServer interface {
 type UnimplementedServiceProductServer struct {
 }
 
+func (UnimplementedServiceProductServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
 func (UnimplementedServiceProductServer) CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
 }
@@ -117,6 +132,24 @@ type UnsafeServiceProductServer interface {
 
 func RegisterServiceProductServer(s grpc.ServiceRegistrar, srv ServiceProductServer) {
 	s.RegisterService(&ServiceProduct_ServiceDesc, srv)
+}
+
+func _ServiceProduct_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceProductServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceProduct_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceProductServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ServiceProduct_CreateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -198,6 +231,10 @@ var ServiceProduct_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.ServiceProduct",
 	HandlerType: (*ServiceProductServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Ping",
+			Handler:    _ServiceProduct_Ping_Handler,
+		},
 		{
 			MethodName: "CreateProduct",
 			Handler:    _ServiceProduct_CreateProduct_Handler,

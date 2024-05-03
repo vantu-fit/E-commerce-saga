@@ -8,6 +8,7 @@ import (
 	"github.com/vantu-fit/saga-pattern/cmd/product/config"
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/pb"
+	grpcclient "github.com/vantu-fit/saga-pattern/pkg/grpc_client"
 	"github.com/vantu-fit/saga-pattern/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -19,10 +20,10 @@ type Server struct {
 	config     *config.Config
 	store      db.Store
 	grpcServer *grpc.Server
-	grpcClient *Client
+	grpcClient *grpcclient.Client
 }
 
-func NewServer(config *config.Config, store db.Store, grpcClient *Client) (*Server, error) {
+func NewServer(config *config.Config, store db.Store, grpcClient *grpcclient.Client) (*Server, error) {
 	server := &Server{
 		config:     config,
 		store:      store,

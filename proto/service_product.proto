@@ -6,6 +6,7 @@ package pb;
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "service_account.proto";
 
 option go_package = "github.com/vantu-fit/saga-pattern/pb";
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
@@ -19,6 +20,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
       };
     };
 };
+
 
 message Category {
   string id = 1;
@@ -87,7 +89,19 @@ message UpdateProductResponse {
 }
 
 
+
+
 service ServiceProduct {
+    rpc Ping (PingRequest) returns (PingResponse){
+        option (google.api.http) = {
+                  post: "/api/v1/products/ping"
+                  body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to test the connection.";
+          summary: "Test connection";
+        };
+    }
     rpc CreateProduct (CreateProductRequest) returns (CreateProductResponse){
         option (google.api.http) = {
                   post: "/api/v1/products"

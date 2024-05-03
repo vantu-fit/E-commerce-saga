@@ -52,11 +52,11 @@ type PurchasedProduct struct {
 func (store *SQLStore) UpdateProductInventoryTx(ctx context.Context, idempotencyKey uuid.UUID, purchasedProducts *[]PurchasedProduct) error {
 	return store.execTx(ctx, func(q *Queries) error {
 		// check idempotency key
-		idempotencies , err := store.GetIdempotencyKey(ctx, idempotencyKey)
+		idempotencies, err := store.GetIdempotencyKey(ctx, idempotencyKey)
 		if err != nil {
 			return err
 		}
-		
+
 		if len(idempotencies) > 0 {
 			return fmt.Errorf("idempotency key %v already exists", idempotencyKey)
 		}
@@ -105,7 +105,6 @@ func (store *SQLStore) UpdateProductInventoryTx(ctx context.Context, idempotency
 		return nil
 	})
 }
-
 
 func (store *SQLStore) RollbackProductInventoryTx(ctx context.Context, idempotencyKey uuid.UUID, purchasedProducts *[]PurchasedProduct) error {
 	return store.execTx(ctx, func(q *Queries) error {

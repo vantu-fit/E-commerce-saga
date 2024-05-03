@@ -20,23 +20,21 @@ const (
 )
 
 type CacheStore struct {
-	*SQLStore
-	store *SQLStore
-	lc    cache.LocalCache
-	rc    cache.RedisCache
+	Store
+	lc cache.LocalCache
+	rc cache.RedisCache
 }
 
-func NewCacheStore(store *SQLStore, lc cache.LocalCache, rc cache.RedisCache) Store {
+func NewCacheStore(store Store, lc cache.LocalCache, rc cache.RedisCache) Store {
 	return &CacheStore{
-		SQLStore: store,
-		store:    store,
+		Store: store,
 		lc:       lc,
 		rc:       rc,
 	}
 }
 
 func (storeCache *CacheStore) UpdateProductInventoryTx(ctx context.Context, idempotencyKey uuid.UUID, purchasedProducts *[]PurchasedProduct) error {
-	err := storeCache.store.UpdateProductInventoryTx(ctx, idempotencyKey, purchasedProducts)
+	err := storeCache.Store.UpdateProductInventoryTx(ctx, idempotencyKey, purchasedProducts)
 	if err != nil {
 		return err
 	}
@@ -60,7 +58,7 @@ func (storeCache *CacheStore) UpdateProductInventoryTx(ctx context.Context, idem
 }
 
 func (storeCache *CacheStore) RollbackProductInventoryTx(ctx context.Context, idempotencyKey uuid.UUID, purchasedProducts *[]PurchasedProduct) error {
-	err := storeCache.store.RollbackProductInventoryTx(ctx, idempotencyKey, purchasedProducts)
+	err := storeCache.Store.RollbackProductInventoryTx(ctx, idempotencyKey, purchasedProducts)
 	if err != nil {
 		return err
 	}

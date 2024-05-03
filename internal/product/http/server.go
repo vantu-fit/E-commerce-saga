@@ -11,6 +11,7 @@ import (
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/product/grpc"
 	"github.com/vantu-fit/saga-pattern/pb"
+	grpcclient "github.com/vantu-fit/saga-pattern/pkg/grpc_client"
 	"github.com/vantu-fit/saga-pattern/pkg/logger"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -22,7 +23,7 @@ type HTTPGatewayServer struct {
 	httpGateway *http.Server
 }
 
-func NewHTTPGatewayServer(config *config.Config, store db.Store, grpcClient *grpc.Client) (*HTTPGatewayServer, error) {
+func NewHTTPGatewayServer(config *config.Config, store db.Store, grpcClient *grpcclient.Client) (*HTTPGatewayServer, error) {
 	ctx := context.Background()
 	var err error
 	server := &HTTPGatewayServer{

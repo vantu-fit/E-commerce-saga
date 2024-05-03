@@ -16,9 +16,12 @@ import (
 	"github.com/vantu-fit/saga-pattern/cmd/product/config"
 	"github.com/vantu-fit/saga-pattern/internal/cache"
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
+	"github.com/vantu-fit/saga-pattern/internal/product/event"
 	"github.com/vantu-fit/saga-pattern/internal/product/grpc"
 	"github.com/vantu-fit/saga-pattern/internal/product/http"
 
+	grpcclient "github.com/vantu-fit/saga-pattern/pkg/grpc_client"
+	kafkaClient "github.com/vantu-fit/saga-pattern/pkg/kafka"
 	migrate_db "github.com/vantu-fit/saga-pattern/pkg/migrate"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -49,7 +52,7 @@ func main() {
 		log.Fatal().Msgf("Parse config: %v", err)
 	}
 
-	log.Debug().Msgf("redis addr: %s",  cfg.RedisCache.Address[0])
+	log.Debug().Msgf("redis addr: %s", cfg.RedisCache.Address[0])
 
 	// create context for gracefull shutdown
 	doneCh := make(chan struct{}) // for graceful shutdown
@@ -94,21 +97,28 @@ func main() {
 
 	redisCache := cache.NewRedisCache(redisClient, time.Duration(cfg.RedisCache.ExpirationTime)*time.Second)
 
-	_ = localCache
-	_ = redisCache
+	// create store cache
+	storeCache := db.NewCacheStore(store, localCache, redisCache)
+
+	// create kafka client
+	producer := kafkaClient.NewProducer(cfg.Kafka.Brokers)
+	consumer := kafkaClient.NewConsumerGroup(cfg.Kafka.Brokers)
+
+	// create event handler
+	eventHandler := event.NewEventHandler(cfg , consumer , producer , storeCache)
 
 	// create grpc client
-	grpcClient := grpc.NewClient(cfg)
+	grpcClient := grpcclient.NewClient()
 
 	// run grpc client
 	go func() {
-		if err := grpcClient.RunAccountClient(doneCh); err != nil {
+		if err := grpcClient.RunAccountClient(cfg.GRPCClient.Account ,doneCh); err != nil {
 			log.Fatal().Msgf("Run grpc client: %v", err)
 		}
 	}()
 
 	// create grpc server
-	grpcServer, err := grpc.NewServer(cfg, store, grpcClient)
+	grpcServer, err := grpc.NewServer(cfg, storeCache, grpcClient)
 	if err != nil {
 		log.Fatal().Msgf("Create grpc server: %v", err)
 	}
@@ -122,7 +132,7 @@ func main() {
 	}()
 
 	// create http gateway server
-	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, store, grpcClient)
+	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, storeCache, grpcClient)
 	if err != nil {
 		log.Fatal().Msgf("Create http gateway server: %v", err)
 	}
@@ -134,6 +144,9 @@ func main() {
 			log.Fatal().Msgf("Run http gateway server: %v", err)
 		}
 	}()
+
+	// run event handler
+	eventHandler.Run(ctx)
 
 	// graceful shutdown
 	<-ctx.Done()
