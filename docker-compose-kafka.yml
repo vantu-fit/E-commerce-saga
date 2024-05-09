@@ -51,55 +51,18 @@ services:
       kafka-topics --bootstrap-server kafka:29091 --list
       
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic purchase --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic purchase-result --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic update-product-inventory --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-product-inventory --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic create-order --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-order --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic create-payment --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-payment --replication-factor 1 --partitions 1
-      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic reply --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic purchase --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic purchase-result --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic update-product-inventory --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-product-inventory --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic create-order --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-order --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic create-payment --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-payment --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic reply --replication-factor 1 --partitions 10
       
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29091 --list
-
-      # Produce a message for each topic
-      kafka-console-producer --topic purchase --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from purchase topic"}
-      EOF
-
-      kafka-console-producer --topic purchase-result --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from purchase-result topic"}
-      EOF
-
-      kafka-console-producer --topic update-product-inventory --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from update-product-inventory topic"}
-      EOF
-
-      kafka-console-producer --topic rollback-product-inventory --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from rollback-product-inventory topic"}
-      EOF
-
-      kafka-console-producer --topic create-order --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from create-order topic"}
-      EOF
-
-      kafka-console-producer --topic rollback-order --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from rollback-order topic"}
-      EOF
-
-      kafka-console-producer --topic create-payment --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from create-payment topic"}
-      EOF
-
-      kafka-console-producer --topic rollback-payment --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from rollback-payment topic"}
-      EOF
-
-      kafka-console-producer --topic reply --bootstrap-server kafka:29091 << EOF
-      {"message": "Hello from reply topic"}
-      EOF
       "
     depends_on:
       - kafka

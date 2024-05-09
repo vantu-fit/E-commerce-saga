@@ -1,0 +1,36 @@
+service:
+  Name: media_service
+  Mode: Development
+  Debug: true
+  ReadTimeout: 5
+  WriteTimeout: 5
+
+http:
+  Port: 8080
+  Mode: debug
+
+postgres:
+  DNS_URL: postgresql://admin:secret@media_db:5432/media_db?sslmode=disable
+  Migration: file://internal/media/db/migration
+
+grpc:
+  Port: 50051
+  Timeout: 15
+  Time: 5
+  MaxConnectionIdle: 30
+  MaxConnectionAge: 5
+  ShutdownWait: 0
+
+grpcClient:
+  Timeout: 5
+  Account: auth_service:50051
+  Product: product_service:50051
+  Order: order_service:50051
+
+minio:
+  Endpoint: "minio:9000"
+  Username: admin123456
+  Password: secret123456
+
+kafka:
+  Brokers: ["kafka:9090"]

@@ -41,7 +41,7 @@ func TestUpdateProductInventoryTx(t *testing.T) {
 
 		purchasedProducts = append(purchasedProducts, db.PurchasedProduct{
 			ProductID: product.ID,
-			Quantity:  product.Inventory - int32(i+1),
+			Quantity:  product.Inventory - int64(i+1),
 		})
 	}
 
@@ -80,7 +80,7 @@ func TestRollbackProductInventoryTx(t *testing.T) {
 
 		purchasedProducts = append(purchasedProducts, db.PurchasedProduct{
 			ProductID: product.ID,
-			Quantity:  int32(i+1),
+			Quantity:  int64(i+1),
 		})
 	}
 

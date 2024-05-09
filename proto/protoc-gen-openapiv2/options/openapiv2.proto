@@ -143,7 +143,7 @@ message Operation {
   // Unique string used to identify the operation. The id MUST be unique among
   // all operations described in the API. Tools and libraries MAY use the
   // operationId to uniquely identify an operation, therefore, it is recommended
-  // to follow common programming naming conventions.
+  // to follow event programming naming conventions.
   string operation_id = 5;
   // A list of MIME types the operation can consume. This overrides the consumes
   // definition at the OpenAPI Object. An empty value MAY be used to clear the
@@ -621,7 +621,7 @@ message SecurityDefinitions {
 //
 // Allows the definition of a security scheme that can be used by the
 // operations. Supported schemes are basic authentication, an API key (either as
-// a header or as a query parameter) and OAuth2's common flows (implicit,
+// a header or as a query parameter) and OAuth2's event flows (implicit,
 // password, application and access code).
 message SecurityScheme {
   // The type of the security scheme. Valid values are "basic",

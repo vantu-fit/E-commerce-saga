@@ -33,8 +33,8 @@ type CreateProductParams struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	BrandName   string    `json:"brand_name"`
-	Price       int32     `json:"price"`
-	Inventory   int32     `json:"inventory"`
+	Price       int64     `json:"price"`
+	Inventory   int64     `json:"inventory"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
@@ -47,6 +47,28 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		arg.Price,
 		arg.Inventory,
 	)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.IDCategory,
+		&i.IDAccount,
+		&i.Name,
+		&i.Description,
+		&i.BrandName,
+		&i.Price,
+		&i.Inventory,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const deleteProduct = `-- name: DeleteProduct :one
+DELETE FROM products WHERE id = $1 RETURNING id, id_category, id_account, name, description, brand_name, price, inventory, updated_at, created_at
+`
+
+func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) (Product, error) {
+	row := q.db.QueryRow(ctx, deleteProduct, id)
 	var i Product
 	err := row.Scan(
 		&i.ID,
@@ -96,8 +118,8 @@ type GetProductCategoryRow struct {
 	Name          string    `json:"name"`
 	Description   string    `json:"description"`
 	BrandName     string    `json:"brand_name"`
-	Price         int32     `json:"price"`
-	Inventory     int32     `json:"inventory"`
+	Price         int64     `json:"price"`
+	Inventory     int64     `json:"inventory"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	CreatedAt     time.Time `json:"created_at"`
 	ID_2          uuid.UUID `json:"id_2"`
@@ -165,6 +187,46 @@ func (q *Queries) GetProductForUpdate(ctx context.Context, id uuid.UUID) (Produc
 	return i, err
 }
 
+const listProducts = `-- name: ListProducts :many
+SELECT id, id_category, id_account, name, description, brand_name, price, inventory, updated_at, created_at FROM products ORDER BY id OFFSET $1 LIMIT $2
+`
+
+type ListProductsParams struct {
+	Offset int32 `json:"offset"`
+	Limit  int32 `json:"limit"`
+}
+
+func (q *Queries) ListProducts(ctx context.Context, arg ListProductsParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, listProducts, arg.Offset, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.IDCategory,
+			&i.IDAccount,
+			&i.Name,
+			&i.Description,
+			&i.BrandName,
+			&i.Price,
+			&i.Inventory,
+			&i.UpdatedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upadateProduct = `-- name: UpadateProduct :one
 UPDATE products
 SET
@@ -185,8 +247,8 @@ type UpadateProductParams struct {
 	Name        pgtype.Text `json:"name"`
 	Description pgtype.Text `json:"description"`
 	BrandName   pgtype.Text `json:"brand_name"`
-	Price       pgtype.Int4 `json:"price"`
-	Inventory   pgtype.Int4 `json:"inventory"`
+	Price       pgtype.Int8 `json:"price"`
+	Inventory   pgtype.Int8 `json:"inventory"`
 	ID          uuid.UUID   `json:"id"`
 }
 

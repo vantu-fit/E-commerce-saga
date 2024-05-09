@@ -46,7 +46,7 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 
 type PurchasedProduct struct {
 	ProductID uuid.UUID `json:"product_id"`
-	Quantity  int32     `json:"quantity"`
+	Quantity  int64     `json:"quantity"`
 }
 
 func (store *SQLStore) UpdateProductInventoryTx(ctx context.Context, idempotencyKey uuid.UUID, purchasedProducts *[]PurchasedProduct) error {
@@ -76,8 +76,8 @@ func (store *SQLStore) UpdateProductInventoryTx(ctx context.Context, idempotency
 
 			argUpadateProduct := UpadateProductParams{
 				ID: product.ID,
-				Inventory: pgtype.Int4{
-					Int32: product.Inventory - purchasedProduct.Quantity,
+				Inventory: pgtype.Int8{
+					Int64: product.Inventory - purchasedProduct.Quantity,
 					Valid: true,
 				},
 			}
@@ -111,6 +111,7 @@ func (store *SQLStore) RollbackProductInventoryTx(ctx context.Context, idempoten
 		// get idempotencies key of this purchase
 		idempotencies, err := store.GetIdempotencyKey(ctx, idempotencyKey)
 		if err != nil {
+			fmt.Println("err idempotency key ", err)
 			if err == pgx.ErrNoRows {
 				return fmt.Errorf("idempotency key %v not found", idempotencyKey)
 			}
@@ -122,6 +123,7 @@ func (store *SQLStore) RollbackProductInventoryTx(ctx context.Context, idempoten
 			// get product for update : lock
 			product, err := store.GetProductForUpdate(ctx, idempotency.ProductID)
 			if err != nil {
+				fmt.Println("err get product for update ", err)
 				return err
 			}
 
@@ -132,8 +134,8 @@ func (store *SQLStore) RollbackProductInventoryTx(ctx context.Context, idempoten
 
 			argUpadateProduct := UpadateProductParams{
 				ID: product.ID,
-				Inventory: pgtype.Int4{
-					Int32: product.Inventory + idempotency.Quantity,
+				Inventory: pgtype.Int8{
+					Int64: product.Inventory + idempotency.Quantity,
 					Valid: true,
 				},
 			}
@@ -153,6 +155,9 @@ func (store *SQLStore) RollbackProductInventoryTx(ctx context.Context, idempoten
 				Valid: true,
 			},
 		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})

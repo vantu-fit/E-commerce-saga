@@ -1,6 +1,8 @@
 ACCOUNT_DB_URL=postgresql://postgres:postgres@localhost:5432/account_db?sslmode=disable
 PRODUCT_DB_URL=postgresql://postgres:postgres@localhost:5432/product_db?sslmode=disable
 ORDER_DB_URL=postgresql://postgres:postgres@localhost:5432/order_db?sslmode=disable
+PAYMENT_DB_URL=postgresql://postgres:postgres@localhost:5432/payment_db?sslmode=disable
+MEDIA_DB_URL=postgresql://postgres:postgres@localhost:5432/media_db?sslmode=disable
 
 
 protoc:
@@ -11,8 +13,14 @@ protoc:
 	proto/*.proto
 redis:
 	docker compose -f ./docker-compose-redis.yml up
+redis-down:
+	docker compose -f ./docker-compose-redis.yml down
 kafka:
 	docker compose -f ./docker-compose-kafka.yml up
+minio:
+	docker compose -f ./docker-compose-minio.yml up
+minio-down:
+	docker compose -f ./docker-compose-minio.yml down
 
 account:
 	go run ./cmd/account/main.go
@@ -36,6 +44,7 @@ migrate-product-down:
 sqlc-product:
 	sqlc generate -f sqlc/product.yml
 
+
 order:
 	go run ./cmd/order/main.go
 migrate-order-up:
@@ -44,6 +53,34 @@ migrate-order-down:
 	migrate -path internal/order/db/migration -database "$(ORDER_DB_URL)" -verbose down
 sqlc-order:
 	sqlc generate -f sqlc/order.yml
+
+
+payment:
+	go run ./cmd/payment/main.go
+migrate-payment-up:
+	migrate -path internal/payment/db/migration -database "$(PAYMENT_DB_URL)" -verbose up
+migrate-payment-down:
+	migrate -path internal/payment/db/migration -database "$(PAYMENT_DB_URL)" -verbose down
+sqlc-payment:
+	sqlc generate -f sqlc/payment.yml
+
+purchase:
+	go run ./cmd/purchase/main.go
+
+
+orchestrator:
+	go run ./cmd/orchestrator/main.go
+
+media:
+	go run ./cmd/media/main.go
+migrate-media-up:
+	migrate -path internal/media/db/migration -database "$(MEDIA_DB_URL)" -verbose up
+migrate-media-down:
+	migrate -path internal/media/db/migration -database "$(MEDIA_DB_URL)" -verbose down
+sqlc-media:
+	sqlc generate -f sqlc/media.yml
+
+
 
 
 test:

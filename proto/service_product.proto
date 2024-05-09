@@ -38,8 +38,8 @@ message Product {
   string name = 4;
   string description = 5;
   string brand_name = 6;
-  int32 price = 7;
-  int32 inventory = 8;
+  int64 price = 7;
+  int64 inventory = 8;
   google.protobuf.Timestamp updated_at = 9;
   google.protobuf.Timestamp created_at = 10;
 }
@@ -49,8 +49,8 @@ message CreateProductRequest {
   string name = 2;
   string description = 3;
   string brand_name = 4;
-  int32 price = 5;
-  int32 inventory = 6;
+  int64 price = 5;
+  int64 inventory = 6;
 }
 
 message CreateProductResponse {
@@ -80,8 +80,8 @@ message UpdateProductRequest {
   optional string name = 3;
   optional string description = 4;
   optional string brand_name = 5;
-  optional int32 price = 6;
-  optional int32 inventory = 7;
+  optional int64 price = 6;
+  optional int64 inventory = 7;
 }
 
 message UpdateProductResponse {

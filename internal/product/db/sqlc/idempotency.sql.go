@@ -26,7 +26,7 @@ INSERT INTO idempotency (
 type CreateIdempotencyParams struct {
 	ID         uuid.UUID `json:"id"`
 	ProductID  uuid.UUID `json:"product_id"`
-	Quantity   int32     `json:"quantity"`
+	Quantity   int64     `json:"quantity"`
 	Rollbacked bool      `json:"rollbacked"`
 }
 

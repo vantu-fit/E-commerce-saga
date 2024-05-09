@@ -21,7 +21,7 @@ type Category struct {
 type Idempotency struct {
 	ID         uuid.UUID `json:"id"`
 	ProductID  uuid.UUID `json:"product_id"`
-	Quantity   int32     `json:"quantity"`
+	Quantity   int64     `json:"quantity"`
 	Rollbacked bool      `json:"rollbacked"`
 	CreatedAt  time.Time `json:"created_at"`
 }
@@ -33,8 +33,8 @@ type Product struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	BrandName   string    `json:"brand_name"`
-	Price       int32     `json:"price"`
-	Inventory   int32     `json:"inventory"`
+	Price       int64     `json:"price"`
+	Inventory   int64     `json:"inventory"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	CreatedAt   time.Time `json:"created_at"`
 }

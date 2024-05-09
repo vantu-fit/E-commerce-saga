@@ -9,13 +9,10 @@ import (
 )
 
 type Config struct {
-	App         any
+	Service     Service
 	HTTP        HTTP
 	GRPC        GRPC
-	GRPCClient  GRPCClient
-	Postgres    Postgres
-	Migration   Migration
-	RpcEnpoints RpcEndpoints `mapstructure:"rpcEndpoints"`
+	GRPCClient  GRPCClient `mapstructure:"grpcClient"`
 	Kafka       Kafka
 	LocalCache  LocalCache `mapstructure:"localCache"`
 	RedisCache  RedisCache `mapstructure:"redisCache"`
@@ -47,27 +44,6 @@ type GRPCClient struct {
 	Account string
 	Product string
 	Order   string
-}
-
-type Logger struct {
-	Development       bool
-	DisableCaller     bool
-	DisableStacktrace bool
-	Encoding          string
-	Level             string
-}
-
-type Postgres struct {
-	DnsURL string `mapstructure:"DNS_URL"`
-}
-
-type Migration struct {
-	Enable   bool
-	Recreate bool
-}
-
-type RpcEndpoints struct {
-	AuthSvc string
 }
 
 type Kafka struct {

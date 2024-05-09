@@ -28,7 +28,7 @@ logger:
   Level: info
 
 postgres:
-  DNS_URL: postgresql://postgres:postgres@localhost:5432/order_db?sslmode=disable
+  DNS_URL: postgresql://admin:secret@order_db:5432/order_db?sslmode=disable
   Migration: file://internal/order/db/migration
 
 

@@ -30,7 +30,7 @@ logger:
 
 postgres:
   DNS_URL: postgresql://admin:secret@product_db:5432/product_db?sslmode=disable
-  Migration: file://internal/account/db/migration
+  Migration: file://internal/product/db/migration
 
 migration:
   Enable: true

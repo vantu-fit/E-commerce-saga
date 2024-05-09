@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package pb;
+
+// Removed the import statement for "account.proto"
+// import "google/api/annotations.proto";
+// import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vantu-fit/saga-pattern/pb";
+
+// enum PurchaseStatus {
+//     EXECUTE = 0;
+//     SUCCESS = 1;
+//     FAILED =  2;
+//     ROLLBACK = 3;
+//     ROLLBACK_FAILED = 4;
+// }
+
+// enum PurchaseStep {
+//     UPDATE_PRODUCT_INVENTORY = 0;
+//     CREATE_ORDER = 1;
+//     CREATE_PAYMENT = 2;
+// }
+
+message PurchaseResult {
+    string purchase_id = 1;
+    string status = 2;
+    string step = 3;
+    google.protobuf.Timestamp created_at = 4;
+}

@@ -107,7 +107,7 @@ func main() {
 	consumer := kafkaClient.NewConsumerGroup(cfg.Kafka.Brokers)
 
 	// create event handler
-	orderEvenHandler := event.NewEventHandler(cfg, consumer, producer, store)
+	orderEvenHandler := event.NewEventHandler(cfg, consumer, producer, orderService)
 
 	// run event handler
 	orderEvenHandler.Run(ctx)

@@ -42,7 +42,7 @@ func (c *consumerGroup) ConsumeTopic(ctx context.Context, poolSize int, groupID 
 		}
 	}()
 
-	log.Info().Msg("Start consuming topic")
+	log.Info().Msgf("Comsumer: %s - Start consuming topic: %s" ,groupID, topic)
 
 	wg := &sync.WaitGroup{}
 	for i := 0; i <= poolSize; i++ {

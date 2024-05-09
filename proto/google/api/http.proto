@@ -176,7 +176,7 @@ message Http {
 // Note that when using `*` in the body mapping, it is not possible to
 // have HTTP parameters, as all fields not bound by the path end in
 // the body. This makes this option more rarely used in practice when
-// defining REST APIs. The common usage of `*` is in custom methods
+// defining REST APIs. The event usage of `*` is in custom methods
 // which don't use the URL at all for transferring data.
 //
 // It is possible to define multiple HTTP methods for one RPC by using
@@ -304,7 +304,7 @@ message Http {
 // because client libraries are not capable of handling such variable expansion.
 //
 // The path variables **must not** capture the leading "/" character. The reason
-// is that the most common use case "{var}" does not capture the leading "/"
+// is that the most event use case "{var}" does not capture the leading "/"
 // character. For consistency, all path variables must share the same behavior.
 //
 // Repeated message fields must not be mapped to URL query parameters, because

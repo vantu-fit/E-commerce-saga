@@ -1,0 +1,26 @@
+service:
+  Name: orchestrator__service
+  Mode: Development
+  Debug: true
+  ReadTimeout: 5
+  WriteTimeout: 5
+
+http:
+  Port: 8085
+  Mode: debug
+
+logger:
+  Development: true
+  DisableCaller: false
+  DisableStacktrace: false
+  Encoding: console
+  Level: info
+
+grpcClient:
+  Timeout: 5
+  Account: localhost:50051
+  Product: localhost:50052
+  Order: localhost:50053
+
+kafka:
+  Brokers: ["localhost:9091"]

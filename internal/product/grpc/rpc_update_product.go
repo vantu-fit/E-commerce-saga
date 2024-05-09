@@ -64,12 +64,12 @@ func (server *Server) UpdateProduct(ctx context.Context, req *pb.UpdateProductRe
 			String: req.GetBrandName(),
 			Valid:  req.BrandName != nil,
 		},
-		Price: pgtype.Int4{
-			Int32: req.GetPrice(),
+		Price: pgtype.Int8{
+			Int64: req.GetPrice(),
 			Valid: req.Price != nil,
 		},
-		Inventory: pgtype.Int4{
-			Int32: req.GetInventory(),
+		Inventory: pgtype.Int8{
+			Int64: req.GetInventory(),
 			Valid: req.Inventory != nil,
 		},
 	}

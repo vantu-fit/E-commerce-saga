@@ -10,3 +10,88 @@ services:
       - "7000:7000"
       - "17000:17000"
     entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7000", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    networks:
+      - api_network
+
+  redis-node-2:
+    container_name: redis-node-2
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-2:/data
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7001", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    networks:
+      - api_network
+
+  redis-node-3:
+    container_name: redis-node-3
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-3:/data
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7002", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    networks:
+      - api_network
+
+  redis-node-4:
+    container_name: redis-node-4
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-4:/data
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7003", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    networks:
+      - api_network
+
+  redis-node-5:
+    container_name: redis-node-5
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-5:/data
+    ports:
+      - "7004:7004"
+      - "17004:17004"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7004", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    networks:
+      - api_network
+
+  redis-node-6:
+    container_name: redis-node-6
+    image: redis/redis-stack-server:latest
+    volumes:
+      - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis-node-6:/data
+    ports:
+      - "7005:7005"
+      - "17005:17005"
+    entrypoint: [ "redis-server", "/usr/local/etc/redis/redis.conf", --port,"7005", --loadmodule, "/opt/redis-stack/lib/redisbloom.so" ]
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    networks:
+      - api_network
+networks:
+  api_network:
+    driver: bridge
+    internal: true
+
+  

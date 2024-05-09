@@ -1,4 +1,11 @@
-package common
+package event
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/vantu-fit/saga-pattern/internal/orchestrator/service/entity"
+)
 
 var (
 	HandlerHeader = "handler"
@@ -39,3 +46,29 @@ var (
 	ReplyTopic   = "reply"
 	ReplyGroupID = "reply-group"
 )
+
+var (
+	StepUpdateProductInventory = "UPDATE_PRODUCT_INVENTORY"
+	StepCreateOrder            = "CREATE_ORDER"
+	StepCreatePayment          = "CREATE_PAYMENT"
+
+	StatusExecute        = "EXUCUTE"
+	StatusSuccess        = "SUCCESS"
+	StatusFailed         = "FAILED"
+	StatusRollback       = "ROLLBACK"
+	StatusRollbackFailed = "ROLLBACK_FAILED"
+)
+
+// PurchaseResult event
+type PurchaseResult struct {
+	PurchaseID uuid.UUID
+	Step       string
+	Status     string
+	Timestamp  time.Time
+}
+
+type CreatePurchaseResponse struct {
+	Purchase *entity.Purchase
+	Succsess bool
+	Error    string
+}

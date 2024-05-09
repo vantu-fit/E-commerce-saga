@@ -11,8 +11,8 @@ services:
       - POSTGRES_DB=account_db
     networks:
       - api_network
-    volumes:
-      - ./data/account_db:/var/lib/postgresql/data
+    # volumes:
+    #   - ./data/account_db:/var/lib/postgresql/data
     
   product_db:
     container_name: product_db
@@ -25,8 +25,36 @@ services:
       - POSTGRES_DB=product_db
     networks:
       - api_network
-    volumes:
-      - ./data/product_db:/var/lib/postgresql/data
+    # volumes:
+    #   - ./data/product_db:/var/lib/postgresql/data
+
+  order_db:
+    container_name: order_db
+    image: postgres:15-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=order_db
+    networks:
+      - api_network
+    # volumes:
+    #   - ./data/order_db:/var/lib/postgresql/data
+    
+  payment_db:
+    container_name: payment_db
+    image: postgres:15-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=payment_db
+    networks:
+      - api_network
+    # volumes:
+    #   - ./data/payment_db:/var/lib/postgresql/data
   
 
   redis-node-1:
@@ -34,7 +62,7 @@ services:
     image: redis/redis-stack-server:latest
     volumes:
       - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./data/redis-node-1:/data
+      # - ./data/redis-node-1:/data
     ports:
       - "7000:7000"
       - "17000:17000"
@@ -47,7 +75,7 @@ services:
     image: redis/redis-stack-server:latest
     volumes:
       - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./data/redis-node-2:/data
+      # - ./data/redis-node-2:/data
     ports:
       - "7001:7001"
       - "17001:17001"
@@ -60,7 +88,7 @@ services:
     image: redis/redis-stack-server:latest
     volumes:
       - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./data/redis-node-3:/data
+      # - ./data/redis-node-3:/data
     ports:
       - "7002:7002"
       - "17002:17002"
@@ -73,7 +101,7 @@ services:
     image: redis/redis-stack-server:latest
     volumes:
       - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./data/redis-node-4:/data
+      # - ./data/redis-node-4:/data
     ports:
       - "7003:7003"
       - "17003:17003"
@@ -90,7 +118,7 @@ services:
     image: redis/redis-stack-server:latest
     volumes:
       - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./data/redis-node-5:/data
+      # - ./data/redis-node-5:/data
     ports:
       - "7004:7004"
       - "17004:17004"
@@ -107,7 +135,7 @@ services:
     image: redis/redis-stack-server:latest
     volumes:
       - ./build/redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./data/redis-node-6:/data
+      # - ./data/redis-node-6:/data
     ports:
       - "7005:7005"
       - "17005:17005"
@@ -133,6 +161,19 @@ services:
     networks:
       - api_network
 
+  kafdrop:
+    container_name: kafdrop
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29091
+    depends_on:
+      - init-kafka
+    networks:
+      - api_network
+
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.2
@@ -147,7 +188,7 @@ services:
       ZOOKEEPER_SERVERS: zoo1:2888:3888
     volumes:
       - ./data/zookeeper/data:/data
-      - ./data/zookeeper/datalog:/datalog
+      # - ./data/zookeeper/datalog:/datalog
     networks:
       - api_network
 
@@ -168,8 +209,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-    volumes:
-      - ./data/kafka/data:/var/lib/kafka/data
+    # volumes:
+    #   - ./data/kafka/data:/var/lib/kafka/data
     depends_on:
       - zookeeper
     networks:
@@ -241,26 +282,107 @@ services:
       - "traefik.http.routers.account_service-http.service=account_service-http"
       - "traefik.http.services.account_service-http.loadbalancer.server.port=8080"
 
-  # product_service:
-  #   container_name: product_service
-  #   build:
-  #     context: .
-  #     dockerfile: ./build/docker/Dockerfile-product
-  #   depends_on:
-  #     - product_db
-  #     - init-kafka
-  #     - redis-cluster-creator
-  #   command: ["/app/main"]
-  #   networks:
-  #       - api_network
-  #   restart:
-  #       on-failure
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.product_service-http.rule=PathPrefix(`/api/v1/products`) || PathPrefix(`/api/v1/categories`)"
-  #     - "traefik.http.routers.product_service-http.entrypoints=web"
-  #     - "traefik.http.routers.product_service-http.service=product_service-http"
-  #     - "traefik.http.services.product_service-http.loadbalancer.server.port=8080"
+  product_service:
+    container_name: product_service
+    build:
+      context: .
+      dockerfile: ./build/docker/dockerfile-product
+    depends_on:
+      - product_db
+      - init-kafka
+      - redis-cluster-creator
+    command: ["/app/main"]
+    networks:
+        - api_network
+    restart:
+        on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.product_service-http.rule=PathPrefix(`/api/v1/products`) || PathPrefix(`/api/v1/categories`)"
+      - "traefik.http.routers.product_service-http.entrypoints=web"
+      - "traefik.http.routers.product_service-http.service=product_service-http"
+      - "traefik.http.services.product_service-http.loadbalancer.server.port=8080"
+    
+  order_service:
+    container_name: order_service
+    build:
+      context: .
+      dockerfile: ./build/docker/dockerfile-order
+    depends_on:
+      - order_db
+      - init-kafka
+      - redis-cluster-creator
+    command: ["/app/main"]
+    networks:
+        - api_network
+    restart:
+        on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.order_service-http.rule=PathPrefix(`/api/v1/orders`)"
+      - "traefik.http.routers.order_service-http.entrypoints=web"
+      - "traefik.http.routers.order_service-http.service=order_service-http"
+      - "traefik.http.services.order_service-http.loadbalancer.server.port=8080"
+    
+  payment_service:
+    container_name: payment_service
+    build:
+      context: .
+      dockerfile: ./build/docker/dockerfile-payment
+    depends_on:
+      - account_service
+      - product_service
+      - order_service
+      - init-kafka
+      - redis-cluster-creator
+    command: ["/app/main"]
+    networks:
+        - api_network
+    restart:
+        on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payment_service-http.rule=PathPrefix(`/api/v1/payments`)"
+      - "traefik.http.routers.payment_service-http.entrypoints=web"
+      - "traefik.http.routers.payment_service-http.service=payment_service-http"
+      - "traefik.http.services.payment_service-http.loadbalancer.server.port=8080"
+
+  purchase_service:
+    container_name: purchase_service
+    build:
+      context: .
+      dockerfile: ./build/docker/dockerfile-purchase
+    depends_on:
+      - account_service
+      - product_service
+      - order_service
+      - payment_service
+      - init-kafka
+      - redis-cluster-creator
+    command: ["/app/main"]
+    networks:
+        - api_network
+    restart:
+        on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.purchase_service-http.rule=PathPrefix(`/api/v1/purchases`)"
+      - "traefik.http.routers.purchase_service-http.entrypoints=web"
+      - "traefik.http.routers.purchase_service-http.service=purchase_service-http"
+      - "traefik.http.services.purchase_service-http.loadbalancer.server.port=8080"
+
+  orchestrator_service:
+    container_name: orchestrator_service
+    build:
+      context: .
+      dockerfile: ./build/docker/dockerfile-orchestrator
+    depends_on:
+      - init-kafka
+    command: ["/app/main"]
+    restart:
+        on-failure
+    networks:
+        - api_network
 
 networks:
   api_network:

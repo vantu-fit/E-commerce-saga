@@ -3,23 +3,21 @@ syntax = "proto3";
 package pb;
 
 // Removed the import statement for "account.proto"
-// import "google/api/annotations.proto";
-// import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "service_account.proto";
 
 option go_package = "github.com/vantu-fit/saga-pattern/pb";
 
-message UUID {
-    string value = 1;
-}
 
 message PurchaseOrderItem {
-    UUID product_id = 1;
+    string product_id = 1;
     uint64 quantity = 2;
-  }
+}
   
   message Order {
-    uint64 customer_id = 1;
+    string customer_id = 1;
     repeated PurchaseOrderItem order_items = 2;
   }
   
@@ -35,13 +33,13 @@ message PurchaseOrderItem {
   
   // purchase commands
   message CreatePurchaseRequest {
-    UUID purchase_id = 1;
+    string purchase_id = 1;
     Purchase purchase = 2;
     google.protobuf.Timestamp timestamp = 3;
   }
   
   message CreatePurchaseResponse {
-    UUID purchase_id = 1;
+    string purchase_id = 1;
     Purchase purchase = 2;
     bool success = 3;
     string error_message = 4;
@@ -49,14 +47,56 @@ message PurchaseOrderItem {
   }
   
   message RollbackPurchaseRequest {
-    UUID purchase_id = 1;
-    google.protobuf.Timestamp timestamp = 3;
+    string purchase_id = 1;
+    google.protobuf.Timestamp timestamp = 2;
   }
   
   message RollbackPurchaseResponse {
-    UUID purchase_id = 1;
+    string purchase_id = 1;
     bool success = 2;
     string error_message = 3;
     google.protobuf.Timestamp timestamp = 4;
   }
+
+message PaymentApi {
+      string currency_code = 1;
+}
+
+message CreatePurchaseRequestApi {
+    repeated PurchaseOrderItem order_items = 1;
+    PaymentApi payment = 2;
+}
+
+
+message CreatePurchaseResponseApi {
+    string purchase_id = 1;
+    string status = 2;
+    google.protobuf.Timestamp timestamp = 3;
+}
+
+
+
+service ServicePurchase {
+    rpc Ping (PingRequest) returns (PingResponse){
+        option (google.api.http) = {
+                  post: "/api/v1/purchases/ping"
+                  body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to test the connection.";
+          summary: "Test connection";
+        };
+    }
+
+    rpc CreatePurchase (CreatePurchaseRequestApi) returns (CreatePurchaseResponseApi){
+        option (google.api.http) = {
+                  post: "/api/v1/purchases"
+                  body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to create a purchase.";
+          summary: "Create purchase";
+        };
+    }
+}
   

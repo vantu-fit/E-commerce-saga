@@ -18,20 +18,9 @@ grpc:
 
 grpcClient:
   Timeout: 5
-  Auth: auth_service:50051
+  Account: account_service:50051
   Product: product_service:50051
   Order: order_service:50051
-
-logger:
-  Development: true
-  DisableCaller: false
-  DisableStacktrace: false
-  Encoding: console
-  Level: info
-
-postgres:
-  DNS_URL: postgresql://admin:secret@purchase_db:5432/purchase_db?sslmode=disable
-  Migration: file://internal/purchase/db/migration
 
 migration:
   Enable: true

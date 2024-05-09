@@ -5,8 +5,8 @@ CREATE TABLE "products" (
   "name" varchar(255) NOT NULL,
   "description" varchar(255) NOT NULL,
   "brand_name" varchar(255) NOT NULL,
-  "price" integer NOT NULL CHECK (price >= 0),
-  "inventory" integer NOT NULL CHECK (inventory >= 0),
+  "price" BIGINT NOT NULL CHECK (price >= 0),
+  "inventory" BIGINT NOT NULL CHECK (inventory >= 0),
   "updated_at" timestamptz NOT NULL DEFAULT (now()),
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );

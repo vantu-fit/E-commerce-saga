@@ -14,11 +14,12 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vantu-fit/saga-pattern/cmd/product/config"
-	"github.com/vantu-fit/saga-pattern/internal/cache"
+	"github.com/vantu-fit/saga-pattern/internal/product/service"
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/product/event"
 	"github.com/vantu-fit/saga-pattern/internal/product/grpc"
 	"github.com/vantu-fit/saga-pattern/internal/product/http"
+	"github.com/vantu-fit/saga-pattern/pkg/cache"
 
 	grpcclient "github.com/vantu-fit/saga-pattern/pkg/grpc_client"
 	kafkaClient "github.com/vantu-fit/saga-pattern/pkg/kafka"
@@ -100,25 +101,30 @@ func main() {
 	// create store cache
 	storeCache := db.NewCacheStore(store, localCache, redisCache)
 
+	_ = storeCache
+
 	// create kafka client
 	producer := kafkaClient.NewProducer(cfg.Kafka.Brokers)
 	consumer := kafkaClient.NewConsumerGroup(cfg.Kafka.Brokers)
 
+	// create product service
+	productService := service.NewService(store)
+
 	// create event handler
-	eventHandler := event.NewEventHandler(cfg , consumer , producer , storeCache)
+	eventHandler := event.NewEventHandler(cfg, consumer, producer , &productService)
 
 	// create grpc client
 	grpcClient := grpcclient.NewClient()
 
 	// run grpc client
 	go func() {
-		if err := grpcClient.RunAccountClient(cfg.GRPCClient.Account ,doneCh); err != nil {
+		if err := grpcClient.RunAccountClient(cfg.GRPCClient.Account, doneCh); err != nil {
 			log.Fatal().Msgf("Run grpc client: %v", err)
 		}
 	}()
 
 	// create grpc server
-	grpcServer, err := grpc.NewServer(cfg, storeCache, grpcClient)
+	grpcServer, err := grpc.NewServer(cfg, store, grpcClient)
 	if err != nil {
 		log.Fatal().Msgf("Create grpc server: %v", err)
 	}
@@ -132,7 +138,7 @@ func main() {
 	}()
 
 	// create http gateway server
-	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, storeCache, grpcClient)
+	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, store, grpcClient)
 	if err != nil {
 		log.Fatal().Msgf("Create http gateway server: %v", err)
 	}

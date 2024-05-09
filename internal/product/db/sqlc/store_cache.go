@@ -2,9 +2,10 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/vantu-fit/saga-pattern/internal/cache"
+	"github.com/vantu-fit/saga-pattern/pkg/cache"
 	"github.com/vantu-fit/saga-pattern/pkg/utils"
 )
 
@@ -28,14 +29,15 @@ type CacheStore struct {
 func NewCacheStore(store Store, lc cache.LocalCache, rc cache.RedisCache) Store {
 	return &CacheStore{
 		Store: store,
-		lc:       lc,
-		rc:       rc,
+		lc:    lc,
+		rc:    rc,
 	}
 }
 
 func (storeCache *CacheStore) UpdateProductInventoryTx(ctx context.Context, idempotencyKey uuid.UUID, purchasedProducts *[]PurchasedProduct) error {
 	err := storeCache.Store.UpdateProductInventoryTx(ctx, idempotencyKey, purchasedProducts)
 	if err != nil {
+		fmt.Println("UpdateProductInventoryTx", err)
 		return err
 	}
 
@@ -49,6 +51,7 @@ func (storeCache *CacheStore) UpdateProductInventoryTx(ctx context.Context, idem
 	if len(payloads) > 0 {
 		err = storeCache.rc.ExecIncrbyXPipeline(ctx, &payloads)
 		if err != nil {
+			fmt.Println("UpdateProductInventoryTx", err)
 			return err
 		}
 		return nil
@@ -60,6 +63,7 @@ func (storeCache *CacheStore) UpdateProductInventoryTx(ctx context.Context, idem
 func (storeCache *CacheStore) RollbackProductInventoryTx(ctx context.Context, idempotencyKey uuid.UUID, purchasedProducts *[]PurchasedProduct) error {
 	err := storeCache.Store.RollbackProductInventoryTx(ctx, idempotencyKey, purchasedProducts)
 	if err != nil {
+		fmt.Println("RollbackProductInventoryTx", err)
 		return err
 	}
 
@@ -73,6 +77,7 @@ func (storeCache *CacheStore) RollbackProductInventoryTx(ctx context.Context, id
 	if len(payloads) > 0 {
 		err = storeCache.rc.ExecIncrbyXPipeline(ctx, &payloads)
 		if err != nil {
+			fmt.Println("RollbackProductInventoryTx", err)
 			return err
 		}
 		return nil

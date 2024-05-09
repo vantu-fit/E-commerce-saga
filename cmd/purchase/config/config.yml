@@ -1,16 +1,16 @@
 service:
-  Name: payment_service
+  Name: purchase_service
   Mode: Development
   Debug: true
   ReadTimeout: 5
   WriteTimeout: 5
 
 http:
-  Port: 8083
+  Port: 80
   Mode: debug
 
 grpc:
-  Port: 50054
+  Port: 50055
   Timeout: 15
   Time: 5
   MaxConnectionIdle: 30
@@ -18,28 +18,9 @@ grpc:
 
 grpcClient:
   Timeout: 5
-  Auth: localhost:50051
-  Product: localhost:50052
-  Order: localhost:50053
-
-logger:
-  Development: true
-  DisableCaller: false
-  DisableStacktrace: false
-  Encoding: console
-  Level: info
-
-postgres:
-  DNS_URL: postgresql://postgres:postgres@localhost:5432/purchase_db?sslmode=disable
-  Migration: file://internal/purchase/db/migration
-
-migration:
-  Enable: true
-  Recreate: false
-
-rpcEndpoints:
-  authSvc: ":50051"
-  productSvc: ":50052"
+  Account: "localhost:50051"
+  Product: "localhost:50052"
+  Order: "localhost:50053"
 
 kafka:
   Brokers: ["localhost:9091"]
