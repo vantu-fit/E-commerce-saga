@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"github.com/vantu-fit/saga-pattern/internal/media/service/command"
 	"github.com/vantu-fit/saga-pattern/pb"
 	"google.golang.org/grpc/codes"
@@ -13,7 +14,7 @@ func (s *Server) UploadImage(ctx context.Context, req *pb.UploadImageRequest) (*
 	// Auth
 
 	// Validate request
-
+	log.Debug().Msg("Validate request")
 	// Call command
 	url, err := s.service.Commad.UploadImage.Handle(ctx, command.UploadImage{
 		UploadImageRequest: req,

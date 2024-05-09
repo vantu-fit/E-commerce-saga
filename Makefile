@@ -21,6 +21,8 @@ minio:
 	docker compose -f ./docker-compose-minio.yml up
 minio-down:
 	docker compose -f ./docker-compose-minio.yml down
+envoy:
+	docker compose -f ./docker-compose-envoy.yml up
 
 account:
 	go run ./cmd/account/main.go

@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	db "github.com/vantu-fit/saga-pattern/internal/media/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/media/media"
 	"github.com/vantu-fit/saga-pattern/pb"
@@ -32,6 +33,9 @@ func NewUploadImageHandler(
 }
 
 func (h *uploadImageHandler) Handle(ctx context.Context, cmd UploadImage) (string, error) {
+	log.Error().Msg("UploadImageHandler")
+	//size := len(cmd.Data)
+	log.Info().Msgf("UploadImageHandler: %v" , len(cmd.Data))
 	err := h.media.UploadObject(ctx, &media.File{
 		Name:      cmd.Filename,
 		Data:      bytes.NewReader(cmd.Data),
@@ -41,7 +45,7 @@ func (h *uploadImageHandler) Handle(ctx context.Context, cmd UploadImage) (strin
 	if err != nil {
 		return "", err
 	}
-
+	log.Error().Msg("UploadObject")
 	_, err = h.store.CreateProductImage(ctx, db.CreateProductImageParams{
 		ProductID: uuid.MustParse(cmd.GetProductId()),
 		Name:      cmd.Filename,
