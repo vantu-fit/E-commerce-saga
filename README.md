@@ -31,7 +31,7 @@ Microservice architecture with Saga Orchestration pattern
   - Used for testing email sending.
 
 ## Architecture diagram
-![saga-orchestration](docs/saga-architecture.png)
+![saga-orchestration](docs/saga-architecturex2.png)
 
 ## Quick start
 
