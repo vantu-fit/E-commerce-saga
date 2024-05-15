@@ -10,9 +10,7 @@ import (
 
 type Store interface {
 	Querier
-	// TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
-	// CreateUserTx(ctx context.Context, arg CreateUserTxParams) (CreateUserTxResult, error)
-	// VerifyEmailTx(ctx context.Context, arg VerifyEmailTxParams) (VerifyEmailTxResult, error)
+	ExecTx(ctx context.Context, fn func(*Queries) error) error
 }
 type SQLStore struct {
 	*Queries
@@ -26,7 +24,7 @@ func NewStore(db *pgxpool.Pool) Store {
 	}
 }
 
-func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) ExecTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err

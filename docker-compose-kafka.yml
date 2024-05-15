@@ -60,6 +60,8 @@ services:
       kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic create-payment --replication-factor 1 --partitions 10
       kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic rollback-payment --replication-factor 1 --partitions 10
       kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic reply --replication-factor 1 --partitions 10
+      kafka-topics --bootstrap-server kafka:29091 --create --if-not-exists --topic send-register-email --replication-factor 1 --partitions 1
+
       
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29091 --list

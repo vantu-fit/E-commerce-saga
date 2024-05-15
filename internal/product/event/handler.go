@@ -23,7 +23,7 @@ import (
 var (
 	retryAttempts uint = 10
 	retryDelay         = 1 * time.Second
-	poolSize           = 16
+	poolSize           = 64
 )
 
 type EventHandler interface {
@@ -90,12 +90,15 @@ func (h *eventHandler) updateProductInventoryWorker(ctx context.Context, r *kafk
 					Quantity: int64(item.Quantity),
 				}
 			}
-
+			log.Info().Msgf("start update product inventory")
 			err = h.service.Command.UpdateProductInventory.Handle(ctx, command.UpdateProductInventory{
 				PurchaseID:   uuid.MustParse(purchaseRequest.PurchaseId),
 				ProductItems: &productItems,
 			})
+			log.Info().Msgf("end update product inventory")
+
 			if err != nil {
+				log.Error().Msgf("Product.UpdateProductInventory: Handle, err: %s", err)
 				reply.Success = false
 				reply.ErrorMessage = err.Error()
 			} else {
@@ -109,7 +112,8 @@ func (h *eventHandler) updateProductInventoryWorker(ctx context.Context, r *kafk
 			if err != nil {
 				return err
 			}
-
+			
+			log.Info().Msgf("send reply message to topic %s", event.ReplyTopic)
 			return h.producer.PublishMessage(ctx, kafka.Message{
 				Topic: event.ReplyTopic,
 				Value: payload,

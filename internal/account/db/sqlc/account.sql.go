@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createAccount = `-- name: CreateAccount :one
@@ -40,6 +42,28 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		arg.PhoneNumber,
 		arg.Password,
 	)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Active,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Address,
+		&i.PhoneNumber,
+		&i.Password,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getAccount = `-- name: GetAccount :one
+SELECT id, active, first_name, last_name, email, address, phone_number, password, updated_at, created_at FROM accounts WHERE id = $1
+`
+
+func (q *Queries) GetAccount(ctx context.Context, id uuid.UUID) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccount, id)
 	var i Account
 	err := row.Scan(
 		&i.ID,

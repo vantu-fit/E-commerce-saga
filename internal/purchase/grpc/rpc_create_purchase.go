@@ -16,8 +16,6 @@ import (
 
 func (s *Server) CreatePurchase(ctx context.Context, req *pb.CreatePurchaseRequestApi) (*pb.CreatePurchaseResponseApi, error) {
 	fmt.Println("CreatePurchase")
-	fmt.Println(req.OrderItems)
-	fmt.Println(req.Payment)
 	//Authclient
 	// transform context to metadata
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -40,22 +38,35 @@ func (s *Server) CreatePurchase(ctx context.Context, req *pb.CreatePurchaseReque
 	}
 	// ProductClient
 	// count amount
-	amount := int64(100)
-	// for _, item := range req.OrderItems {
-	// 	product, err := s.grpcClient.ProductClient.GetProductByID(ctx, &pb.GetProductByIDRequest{
-	// 		Id: item.ProductId,
-	// 	})
-	// 	if err != nil {
-	// 		return nil, status.Errorf(codes.Internal, "Error get product, err: %s", err.Error())
-	// 	}
+	amount := int64(0)
+	for _, item := range req.OrderItems {
+		checkRes ,err := s.grpcClient.ProductClient.CheckProduct(ctx, &pb.CheckProductRequest{
+			Id: item.ProductId,
+			Quantity: int64(item.Quantity),
+		})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Error check product, err: %s", err.Error())
+		}
 
-	// 	amount += product.Product.Price * int64(item.Quantity)
-	// }
-	fmt.Println("amount: ", amount)
+		if !checkRes.Valid {
+			return nil, status.Errorf(codes.InvalidArgument, "Product out of stock")
+		}
+
+		product, err := s.grpcClient.ProductClient.GetProductByID(ctx, &pb.GetProductByIDRequest{
+			Id: item.ProductId,
+		})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "Error get product, err: %s", err.Error())
+		}
+
+		amount += product.Product.Price * int64(item.Quantity)
+	
+	}
+
 	purchaseID := uuid.New()
 	err = s.service.Command.CreatePurchase.Handle(ctx, command.CreatePurchase{
 		CreatePurchaseRequestApi: req,
-		CustomerId:               uuid.MustParse(authResponse.Account.Id),
+		CustomerId:               uuid.MustParse(authResponse.UserId),
 		Amount:                   amount,
 		PurchaseId:               purchaseID,
 	})

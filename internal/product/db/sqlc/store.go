@@ -28,7 +28,9 @@ func NewStore(db *pgxpool.Pool) Store {
 }
 
 func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
-	tx, err := store.db.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := store.db.BeginTx(ctx, pgx.TxOptions{
+		// IsoLevel: pgx.ReadUncommitted,
+	})
 	if err != nil {
 		return err
 	}
@@ -40,7 +42,6 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 		}
 		return err
 	}
-	// time.Sleep(5 * time.Second)
 	return tx.Commit(ctx)
 }
 
@@ -64,7 +65,7 @@ func (store *SQLStore) UpdateProductInventoryTx(ctx context.Context, idempotency
 		// update purchase products inventory
 		for _, purchasedProduct := range *purchasedProducts {
 			// get product for update : lock
-			product, err := store.GetProductForUpdate(ctx, purchasedProduct.ProductID)
+			product, err := store.GetProductForUpdate(context.Background(),  purchasedProduct.ProductID)
 			if err != nil {
 				return err
 			}
@@ -74,19 +75,15 @@ func (store *SQLStore) UpdateProductInventoryTx(ctx context.Context, idempotency
 				return fmt.Errorf("product %v has insufficient inventory", purchasedProduct.ProductID)
 			}
 
-			argUpadateProduct := UpadateProductParams{
-				ID: product.ID,
-				Inventory: pgtype.Int8{
-					Int64: product.Inventory - purchasedProduct.Quantity,
-					Valid: true,
-				},
-			}
-
 			// update product inventory
-			_, err = store.UpadateProduct(ctx, argUpadateProduct)
+			_, err = store.UpdateProductInventory(ctx, UpdateProductInventoryParams{
+				ID:        purchasedProduct.ProductID,
+				Inventory: -purchasedProduct.Quantity,
+			})
 			if err != nil {
 				return err
 			}
+
 		}
 
 		// insert idempotency key

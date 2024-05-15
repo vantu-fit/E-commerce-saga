@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    deploy:
+      mode: replicated
+      replicas: 1

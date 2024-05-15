@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pb;
+
+
+option go_package = "github.com/vantu-fit/saga-pattern/pb";
+
+message SendRegisterEmailRequest {
+  string from = 1;
+  string from_name = 2;
+  string to = 3;
+  string subject = 4;
+}
+
+message SendRegisterEmailResponse {
+  string message = 1;
+  bool success = 2;
+}
+

@@ -1,5 +1,5 @@
 -- name: GetIdempotencyKey :many
-SELECT * FROM idempotency WHERE id = $1;
+SELECT * FROM idempotency WHERE id = $1 ; 
 
 -- name: CreateIdempotency :one
 INSERT INTO idempotency (

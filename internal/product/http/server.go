@@ -10,6 +10,7 @@ import (
 	"github.com/vantu-fit/saga-pattern/cmd/product/config"
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/product/grpc"
+	"github.com/vantu-fit/saga-pattern/internal/product/service"
 	"github.com/vantu-fit/saga-pattern/pb"
 	grpcclient "github.com/vantu-fit/saga-pattern/pkg/grpc_client"
 	"github.com/vantu-fit/saga-pattern/pkg/logger"
@@ -23,7 +24,12 @@ type HTTPGatewayServer struct {
 	httpGateway *http.Server
 }
 
-func NewHTTPGatewayServer(config *config.Config, store db.Store, grpcClient *grpcclient.Client) (*HTTPGatewayServer, error) {
+func NewHTTPGatewayServer(
+	config *config.Config,
+	store db.Store,
+	grpcClient *grpcclient.Client,
+	service *service.Service,
+) (*HTTPGatewayServer, error) {
 	ctx := context.Background()
 	var err error
 	server := &HTTPGatewayServer{
@@ -31,7 +37,7 @@ func NewHTTPGatewayServer(config *config.Config, store db.Store, grpcClient *grp
 		store:  store,
 	}
 
-	server.grpcServer, err = grpc.NewServer(config, store, grpcClient)
+	server.grpcServer, err = grpc.NewServer(config, store, grpcClient, service)
 	if err != nil {
 		return nil, err
 	}

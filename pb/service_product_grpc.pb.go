@@ -23,6 +23,7 @@ const (
 	ServiceProduct_CreateProduct_FullMethodName  = "/pb.ServiceProduct/CreateProduct"
 	ServiceProduct_CreateCategory_FullMethodName = "/pb.ServiceProduct/CreateCategory"
 	ServiceProduct_GetProductByID_FullMethodName = "/pb.ServiceProduct/GetProductByID"
+	ServiceProduct_CheckProduct_FullMethodName   = "/pb.ServiceProduct/CheckProduct"
 	ServiceProduct_UpdateProduct_FullMethodName  = "/pb.ServiceProduct/UpdateProduct"
 )
 
@@ -34,6 +35,7 @@ type ServiceProductClient interface {
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error)
 	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*CreateCategoryResponse, error)
 	GetProductByID(ctx context.Context, in *GetProductByIDRequest, opts ...grpc.CallOption) (*GetProductByIDResponse, error)
+	CheckProduct(ctx context.Context, in *CheckProductRequest, opts ...grpc.CallOption) (*CheckProductResponse, error)
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductResponse, error)
 }
 
@@ -81,6 +83,15 @@ func (c *serviceProductClient) GetProductByID(ctx context.Context, in *GetProduc
 	return out, nil
 }
 
+func (c *serviceProductClient) CheckProduct(ctx context.Context, in *CheckProductRequest, opts ...grpc.CallOption) (*CheckProductResponse, error) {
+	out := new(CheckProductResponse)
+	err := c.cc.Invoke(ctx, ServiceProduct_CheckProduct_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *serviceProductClient) UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductResponse, error) {
 	out := new(UpdateProductResponse)
 	err := c.cc.Invoke(ctx, ServiceProduct_UpdateProduct_FullMethodName, in, out, opts...)
@@ -98,6 +109,7 @@ type ServiceProductServer interface {
 	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error)
 	CreateCategory(context.Context, *CreateCategoryRequest) (*CreateCategoryResponse, error)
 	GetProductByID(context.Context, *GetProductByIDRequest) (*GetProductByIDResponse, error)
+	CheckProduct(context.Context, *CheckProductRequest) (*CheckProductResponse, error)
 	UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductResponse, error)
 	mustEmbedUnimplementedServiceProductServer()
 }
@@ -117,6 +129,9 @@ func (UnimplementedServiceProductServer) CreateCategory(context.Context, *Create
 }
 func (UnimplementedServiceProductServer) GetProductByID(context.Context, *GetProductByIDRequest) (*GetProductByIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductByID not implemented")
+}
+func (UnimplementedServiceProductServer) CheckProduct(context.Context, *CheckProductRequest) (*CheckProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckProduct not implemented")
 }
 func (UnimplementedServiceProductServer) UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProduct not implemented")
@@ -206,6 +221,24 @@ func _ServiceProduct_GetProductByID_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ServiceProduct_CheckProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceProductServer).CheckProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceProduct_CheckProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceProductServer).CheckProduct(ctx, req.(*CheckProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ServiceProduct_UpdateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateProductRequest)
 	if err := dec(in); err != nil {
@@ -246,6 +279,10 @@ var ServiceProduct_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProductByID",
 			Handler:    _ServiceProduct_GetProductByID_Handler,
+		},
+		{
+			MethodName: "CheckProduct",
+			Handler:    _ServiceProduct_CheckProduct_Handler,
 		},
 		{
 			MethodName: "UpdateProduct",

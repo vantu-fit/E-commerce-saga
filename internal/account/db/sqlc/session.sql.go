@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -15,50 +14,44 @@ import (
 const createSession = `-- name: CreateSession :one
 INSERT INTO sessions (
   id ,
-  email,
+  user_id,
   refresh_token,
   user_agent,
-  client_ip,
-  expires_at
+  client_ip
 ) VALUES (
-    $1 , $2, $3, $4, $5 , $6
-) RETURNING id, email, refresh_token, user_agent, client_ip, is_blocked, expires_at, created_at
+    $1 , $2, $3, $4, $5 
+) RETURNING id, user_id, refresh_token, user_agent, client_ip
 `
 
 type CreateSessionParams struct {
 	ID           uuid.UUID `json:"id"`
-	Email        string    `json:"email"`
+	UserID       uuid.UUID `json:"user_id"`
 	RefreshToken string    `json:"refresh_token"`
 	UserAgent    string    `json:"user_agent"`
 	ClientIp     string    `json:"client_ip"`
-	ExpiresAt    time.Time `json:"expires_at"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
 	row := q.db.QueryRow(ctx, createSession,
 		arg.ID,
-		arg.Email,
+		arg.UserID,
 		arg.RefreshToken,
 		arg.UserAgent,
 		arg.ClientIp,
-		arg.ExpiresAt,
 	)
 	var i Session
 	err := row.Scan(
 		&i.ID,
-		&i.Email,
+		&i.UserID,
 		&i.RefreshToken,
 		&i.UserAgent,
 		&i.ClientIp,
-		&i.IsBlocked,
-		&i.ExpiresAt,
-		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getSessionById = `-- name: GetSessionById :one
-SELECT id, email, refresh_token, user_agent, client_ip, is_blocked, expires_at, created_at FROM sessions WHERE id = $1
+SELECT id, user_id, refresh_token, user_agent, client_ip FROM sessions WHERE id = $1
 `
 
 func (q *Queries) GetSessionById(ctx context.Context, id uuid.UUID) (Session, error) {
@@ -66,13 +59,10 @@ func (q *Queries) GetSessionById(ctx context.Context, id uuid.UUID) (Session, er
 	var i Session
 	err := row.Scan(
 		&i.ID,
-		&i.Email,
+		&i.UserID,
 		&i.RefreshToken,
 		&i.UserAgent,
 		&i.ClientIp,
-		&i.IsBlocked,
-		&i.ExpiresAt,
-		&i.CreatedAt,
 	)
 	return i, err
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -51,21 +50,19 @@ func TestCreateSession(t *testing.T) {
 
 	argSession := db.CreateSessionParams{
 		ID:           uuid.New(),
-		Email:        accountRes.Email,
+		UserID:       accountRes.ID,
 		RefreshToken: RandomString(32),
 		UserAgent:    "",
 		ClientIp:     "",
-		ExpiresAt:    time.Now().Add(time.Minute * 15),
 	}
 	session, err := testStore.CreateSession(context.Background(), argSession)
 	require.NoError(t, err)
 	require.NotEmpty(t, session)
 	require.Equal(t, argSession.ID, session.ID)
-	require.Equal(t, argSession.Email, session.Email)
+	require.Equal(t, argSession.UserID, session.UserID)
 	require.Equal(t, argSession.RefreshToken, session.RefreshToken)
 	require.Equal(t, argSession.UserAgent, session.UserAgent)
 	require.Equal(t, argSession.ClientIp, session.ClientIp)
-	require.NotZero(t, session.CreatedAt)
 }
 
 func createRandomAccount() *db.Account {

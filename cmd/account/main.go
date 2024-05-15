@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -17,11 +18,14 @@ import (
 	"github.com/vantu-fit/saga-pattern/internal/account/grpc"
 	"github.com/vantu-fit/saga-pattern/internal/account/http"
 
+	"github.com/vantu-fit/saga-pattern/pkg/cache"
 	migrate_db "github.com/vantu-fit/saga-pattern/pkg/migrate"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
+
+	kafkaClient "github.com/vantu-fit/saga-pattern/pkg/kafka"
 )
 
 var interuptSignals = []os.Signal{
@@ -33,8 +37,6 @@ var interuptSignals = []os.Signal{
 func main() {
 	// log for development
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Print("=== : grpc")
-	log.Print("+++ : http")
 
 	// start service
 	log.Info().Msg("Start account service")
@@ -66,8 +68,40 @@ func main() {
 
 	store := db.NewStore(conn)
 
+	// create redis cluster client
+	log.Info().Msgf("Redis cluster is running on %v", cfg.RedisCache.Address)
+	redisClient := redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:         cfg.RedisCache.Address,
+		Password:      cfg.RedisCache.Password,
+		PoolSize:      cfg.RedisCache.PoolSize,
+		MaxRetries:    cfg.RedisCache.MaxRetries,
+		RouteByLatency: true,
+		ReadOnly:      true,
+		RouteRandomly: true,
+	})
+	
+	// ping
+	err = redisClient.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
+		return shard.Ping(ctx).Err()
+	})
+	if err != nil {
+		log.Fatal().Msgf("Redis cluster ping: %v", err)
+	}
+	// create local cache
+	localCache , err := cache.NewLocalCache(ctx, 0)
+	if err != nil {
+		log.Fatal().Msgf("Create local cache: %v", err)
+	}
+	// create redis cache
+	redisCache := cache.NewRedisCache(redisClient , time.Duration(cfg.RedisCache.ExpirationTime) * time.Second)
+	// create store cache
+	storeCache := db.NewStoreCache(store , localCache , redisCache , cfg)
+	
+	// create kafka producer
+	producer := kafkaClient.NewProducer(cfg.Kafka.Brokers)
+
 	// create grpc server
-	grpcServer, err := grpc.NewServer(cfg, store)
+	grpcServer, err := grpc.NewServer(cfg, storeCache , producer)
 	if err != nil {
 		log.Fatal().Msgf("Create grpc server: %v", err)
 	}
@@ -80,7 +114,7 @@ func main() {
 	}()
 
 	// create http gateway server
-	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, store)
+	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, storeCache , producer)
 	if err != nil {
 		log.Fatal().Msgf("Create http gateway server: %v", err)
 	}

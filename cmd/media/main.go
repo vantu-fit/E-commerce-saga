@@ -75,7 +75,7 @@ func main() {
 		log.Fatal().Msgf("Create minio client: %v", err)
 	}
 	minioService := media.New(cfg, minioClient)
-	mediaService := service.NewService(store, minioService)
+	mediaService := service.NewService(cfg, store, minioService)
 
 	// create grpc client
 	grpcClient := grpcclient.NewClient()

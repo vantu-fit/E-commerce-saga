@@ -10,8 +10,8 @@ import (
 	"github.com/vantu-fit/saga-pattern/cmd/account/config"
 	db "github.com/vantu-fit/saga-pattern/internal/account/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/account/grpc"
-	"github.com/vantu-fit/saga-pattern/internal/account/token"
 	"github.com/vantu-fit/saga-pattern/pb"
+	kafkaClient "github.com/vantu-fit/saga-pattern/pkg/kafka"
 	"github.com/vantu-fit/saga-pattern/pkg/logger"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -19,11 +19,16 @@ import (
 type HTTPGatewayServer struct {
 	config      *config.Config
 	store       db.Store
+	producer    kafkaClient.Producer
 	grpcServer  *grpc.Server
 	httpGateway *http.Server
 }
 
-func NewHTTPGatewayServer(config *config.Config, store db.Store) (*HTTPGatewayServer, error) {
+func NewHTTPGatewayServer(
+	config *config.Config,
+	store db.Store,
+	producer kafkaClient.Producer,
+) (*HTTPGatewayServer, error) {
 	ctx := context.Background()
 	var err error
 	server := &HTTPGatewayServer{
@@ -31,12 +36,7 @@ func NewHTTPGatewayServer(config *config.Config, store db.Store) (*HTTPGatewaySe
 		store:  store,
 	}
 
-	maker, err := token.NewPasetoMaker(config.PasetoConfig.SymmetricKey)
-	if err != nil {
-		return nil, err
-	}
-
-	server.grpcServer, err = grpc.NewServer(config, store)
+	server.grpcServer, err = grpc.NewServer(config, store, producer)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func NewHTTPGatewayServer(config *config.Config, store db.Store) (*HTTPGatewaySe
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/", server.authMiddleware(grpcMux, maker))
+	mux.Handle("/", grpcMux)
 
 	server.httpGateway = &http.Server{
 		Handler: logger.HttpLogger(mux),

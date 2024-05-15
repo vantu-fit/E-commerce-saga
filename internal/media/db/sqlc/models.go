@@ -11,17 +11,17 @@ import (
 )
 
 type ProductImage struct {
-	ID        uuid.UUID `json:"id"`
-	ProductID uuid.UUID `json:"product_id"`
-	Name      string    `json:"name"`
-	Alt       string    `json:"alt"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          uuid.UUID `json:"id"`
+	ContentType string    `json:"content_type"`
+	ProductID   uuid.UUID `json:"product_id"`
+	Alt         string    `json:"alt"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 type ProductVideo struct {
-	ID        uuid.UUID `json:"id"`
-	ProductID uuid.UUID `json:"product_id"`
-	Name      string    `json:"name"`
-	Alt       string    `json:"alt"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          uuid.UUID `json:"id"`
+	ContentType string    `json:"content_type"`
+	ProductID   uuid.UUID `json:"product_id"`
+	Alt         string    `json:"alt"`
+	CreatedAt   time.Time `json:"created_at"`
 }

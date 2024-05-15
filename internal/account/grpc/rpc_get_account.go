@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/vantu-fit/saga-pattern/pb"
 	"google.golang.org/grpc/codes"
@@ -12,12 +13,16 @@ import (
 )
 
 func (server *Server) GetAccount(ctx context.Context, req *emptypb.Empty) (*pb.GetAccountResponse, error) {
-	payload, err := server.authorizationUser(ctx)
+	res, err := server.Auth(ctx, &emptypb.Empty{})
 	if err != nil {
-		return nil, unauthenticatedError(err)
+		return nil, status.Errorf(codes.Unauthenticated, "cannot get account: %s", err)
 	}
 
-	account, err := server.store.GetAccountByEmail(ctx, payload.Email)
+	if !res.Valid {
+		return nil, status.Errorf(codes.Unauthenticated, "cannot get account: %s", "unauthorized")
+	}
+
+	account, err := server.store.GetAccount(ctx, uuid.MustParse(res.UserId))
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, status.Errorf(codes.NotFound, "account not found: %s", err)

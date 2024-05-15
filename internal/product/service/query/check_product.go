@@ -2,20 +2,19 @@ package query
 
 import (
 	"context"
+	"github.com/rs/zerolog/log"
 
 	"github.com/google/uuid"
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
+	"github.com/vantu-fit/saga-pattern/pb"
 )
 
 type CheckProduct struct {
-	ProductID uuid.UUID
-	Quantity  int64
+	*pb.CheckProductRequest
 }
 
 type CheckProductResult struct {
-	ID     uuid.UUID
-	Price  int64
-	Status bool
+	*pb.CheckProductResponse
 }
 
 type CheckProductHandler QueryHandler[CheckProduct, CheckProductResult]
@@ -31,22 +30,27 @@ func NewCheckProductHandler(store db.Store) CheckProductHandler {
 }
 
 func (h *checkProductHandler) Handle(ctx context.Context, cmd CheckProduct) (CheckProductResult, error) {
-	product, err := h.store.GetProductByID(ctx, cmd.ProductID)
+	res, err := h.store.GetProductInventory(ctx, uuid.MustParse(cmd.Id))
 	if err != nil {
-		return CheckProductResult{}, err
-	}
-
-	if product.Inventory < cmd.Quantity {
 		return CheckProductResult{
-			ID:     product.ID,
-			Price:  product.Price,
-			Status: false,
+			CheckProductResponse: &pb.CheckProductResponse{
+				Valid: false,
+			},
+		}, err
+	}
+	if res.Inventory < cmd.Quantity {
+		log.Info().Msgf("Product: product %d is out of stock , Quantity %d", res.Inventory , cmd.Quantity)
+		return CheckProductResult{
+			CheckProductResponse: &pb.CheckProductResponse{
+				Valid: false,
+			},
 		}, nil
 	}
-	
+
 	return CheckProductResult{
-		ID:     product.ID,
-		Price:  product.Price,
-		Status: true,
+		CheckProductResponse: &pb.CheckProductResponse{
+			Valid: true,
+		},
 	}, nil
+
 }

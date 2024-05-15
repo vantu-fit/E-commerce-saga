@@ -18,70 +18,21 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-const ()
-
-// UploadServiceClient is the client API for UploadService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UploadServiceClient interface {
-}
-
-type uploadServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewUploadServiceClient(cc grpc.ClientConnInterface) UploadServiceClient {
-	return &uploadServiceClient{cc}
-}
-
-// UploadServiceServer is the server API for UploadService service.
-// All implementations must embed UnimplementedUploadServiceServer
-// for forward compatibility
-type UploadServiceServer interface {
-	mustEmbedUnimplementedUploadServiceServer()
-}
-
-// UnimplementedUploadServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedUploadServiceServer struct {
-}
-
-func (UnimplementedUploadServiceServer) mustEmbedUnimplementedUploadServiceServer() {}
-
-// UnsafeUploadServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UploadServiceServer will
-// result in compilation errors.
-type UnsafeUploadServiceServer interface {
-	mustEmbedUnimplementedUploadServiceServer()
-}
-
-func RegisterUploadServiceServer(s grpc.ServiceRegistrar, srv UploadServiceServer) {
-	s.RegisterService(&UploadService_ServiceDesc, srv)
-}
-
-// UploadService_ServiceDesc is the grpc.ServiceDesc for UploadService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var UploadService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.UploadService",
-	HandlerType: (*UploadServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "service_media.proto",
-}
-
 const (
-	ServiceMedia_UploadImage_FullMethodName     = "/pb.ServiceMedia/UploadImage"
-	ServiceMedia_DeleteImage_FullMethodName     = "/pb.ServiceMedia/DeleteImage"
-	ServiceMedia_UploadLargeFile_FullMethodName = "/pb.ServiceMedia/UploadLargeFile"
+	ServiceMedia_Upload_FullMethodName      = "/pb.ServiceMedia/Upload"
+	ServiceMedia_DeleteImage_FullMethodName = "/pb.ServiceMedia/DeleteImage"
+	ServiceMedia_GetImageUrl_FullMethodName = "/pb.ServiceMedia/GetImageUrl"
+	ServiceMedia_GetVideoUrl_FullMethodName = "/pb.ServiceMedia/GetVideoUrl"
 )
 
 // ServiceMediaClient is the client API for ServiceMedia service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceMediaClient interface {
-	UploadImage(ctx context.Context, in *UploadImageRequest, opts ...grpc.CallOption) (*UploadImageResponse, error)
+	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error)
 	DeleteImage(ctx context.Context, in *DeleteImageRequest, opts ...grpc.CallOption) (*DeleteImageResponse, error)
-	UploadLargeFile(ctx context.Context, opts ...grpc.CallOption) (ServiceMedia_UploadLargeFileClient, error)
+	GetImageUrl(ctx context.Context, in *GetUrlRequest, opts ...grpc.CallOption) (*GetUrlResponse, error)
+	GetVideoUrl(ctx context.Context, in *GetUrlRequest, opts ...grpc.CallOption) (*GetUrlResponse, error)
 }
 
 type serviceMediaClient struct {
@@ -92,9 +43,9 @@ func NewServiceMediaClient(cc grpc.ClientConnInterface) ServiceMediaClient {
 	return &serviceMediaClient{cc}
 }
 
-func (c *serviceMediaClient) UploadImage(ctx context.Context, in *UploadImageRequest, opts ...grpc.CallOption) (*UploadImageResponse, error) {
-	out := new(UploadImageResponse)
-	err := c.cc.Invoke(ctx, ServiceMedia_UploadImage_FullMethodName, in, out, opts...)
+func (c *serviceMediaClient) Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error) {
+	out := new(UploadResponse)
+	err := c.cc.Invoke(ctx, ServiceMedia_Upload_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -110,47 +61,32 @@ func (c *serviceMediaClient) DeleteImage(ctx context.Context, in *DeleteImageReq
 	return out, nil
 }
 
-func (c *serviceMediaClient) UploadLargeFile(ctx context.Context, opts ...grpc.CallOption) (ServiceMedia_UploadLargeFileClient, error) {
-	stream, err := c.cc.NewStream(ctx, &ServiceMedia_ServiceDesc.Streams[0], ServiceMedia_UploadLargeFile_FullMethodName, opts...)
+func (c *serviceMediaClient) GetImageUrl(ctx context.Context, in *GetUrlRequest, opts ...grpc.CallOption) (*GetUrlResponse, error) {
+	out := new(GetUrlResponse)
+	err := c.cc.Invoke(ctx, ServiceMedia_GetImageUrl_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &serviceMediaUploadLargeFileClient{stream}
-	return x, nil
+	return out, nil
 }
 
-type ServiceMedia_UploadLargeFileClient interface {
-	Send(*UploadRequest) error
-	CloseAndRecv() (*UploadResponse, error)
-	grpc.ClientStream
-}
-
-type serviceMediaUploadLargeFileClient struct {
-	grpc.ClientStream
-}
-
-func (x *serviceMediaUploadLargeFileClient) Send(m *UploadRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *serviceMediaUploadLargeFileClient) CloseAndRecv() (*UploadResponse, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
+func (c *serviceMediaClient) GetVideoUrl(ctx context.Context, in *GetUrlRequest, opts ...grpc.CallOption) (*GetUrlResponse, error) {
+	out := new(GetUrlResponse)
+	err := c.cc.Invoke(ctx, ServiceMedia_GetVideoUrl_FullMethodName, in, out, opts...)
+	if err != nil {
 		return nil, err
 	}
-	m := new(UploadResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // ServiceMediaServer is the server API for ServiceMedia service.
 // All implementations must embed UnimplementedServiceMediaServer
 // for forward compatibility
 type ServiceMediaServer interface {
-	UploadImage(context.Context, *UploadImageRequest) (*UploadImageResponse, error)
+	Upload(context.Context, *UploadRequest) (*UploadResponse, error)
 	DeleteImage(context.Context, *DeleteImageRequest) (*DeleteImageResponse, error)
-	UploadLargeFile(ServiceMedia_UploadLargeFileServer) error
+	GetImageUrl(context.Context, *GetUrlRequest) (*GetUrlResponse, error)
+	GetVideoUrl(context.Context, *GetUrlRequest) (*GetUrlResponse, error)
 	mustEmbedUnimplementedServiceMediaServer()
 }
 
@@ -158,14 +94,17 @@ type ServiceMediaServer interface {
 type UnimplementedServiceMediaServer struct {
 }
 
-func (UnimplementedServiceMediaServer) UploadImage(context.Context, *UploadImageRequest) (*UploadImageResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UploadImage not implemented")
+func (UnimplementedServiceMediaServer) Upload(context.Context, *UploadRequest) (*UploadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Upload not implemented")
 }
 func (UnimplementedServiceMediaServer) DeleteImage(context.Context, *DeleteImageRequest) (*DeleteImageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteImage not implemented")
 }
-func (UnimplementedServiceMediaServer) UploadLargeFile(ServiceMedia_UploadLargeFileServer) error {
-	return status.Errorf(codes.Unimplemented, "method UploadLargeFile not implemented")
+func (UnimplementedServiceMediaServer) GetImageUrl(context.Context, *GetUrlRequest) (*GetUrlResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetImageUrl not implemented")
+}
+func (UnimplementedServiceMediaServer) GetVideoUrl(context.Context, *GetUrlRequest) (*GetUrlResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVideoUrl not implemented")
 }
 func (UnimplementedServiceMediaServer) mustEmbedUnimplementedServiceMediaServer() {}
 
@@ -180,20 +119,20 @@ func RegisterServiceMediaServer(s grpc.ServiceRegistrar, srv ServiceMediaServer)
 	s.RegisterService(&ServiceMedia_ServiceDesc, srv)
 }
 
-func _ServiceMedia_UploadImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadImageRequest)
+func _ServiceMedia_Upload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceMediaServer).UploadImage(ctx, in)
+		return srv.(ServiceMediaServer).Upload(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ServiceMedia_UploadImage_FullMethodName,
+		FullMethod: ServiceMedia_Upload_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceMediaServer).UploadImage(ctx, req.(*UploadImageRequest))
+		return srv.(ServiceMediaServer).Upload(ctx, req.(*UploadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -216,30 +155,40 @@ func _ServiceMedia_DeleteImage_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ServiceMedia_UploadLargeFile_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ServiceMediaServer).UploadLargeFile(&serviceMediaUploadLargeFileServer{stream})
-}
-
-type ServiceMedia_UploadLargeFileServer interface {
-	SendAndClose(*UploadResponse) error
-	Recv() (*UploadRequest, error)
-	grpc.ServerStream
-}
-
-type serviceMediaUploadLargeFileServer struct {
-	grpc.ServerStream
-}
-
-func (x *serviceMediaUploadLargeFileServer) SendAndClose(m *UploadResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *serviceMediaUploadLargeFileServer) Recv() (*UploadRequest, error) {
-	m := new(UploadRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _ServiceMedia_GetImageUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUrlRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(ServiceMediaServer).GetImageUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceMedia_GetImageUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceMediaServer).GetImageUrl(ctx, req.(*GetUrlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ServiceMedia_GetVideoUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceMediaServer).GetVideoUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceMedia_GetVideoUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceMediaServer).GetVideoUrl(ctx, req.(*GetUrlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // ServiceMedia_ServiceDesc is the grpc.ServiceDesc for ServiceMedia service.
@@ -250,20 +199,22 @@ var ServiceMedia_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ServiceMediaServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UploadImage",
-			Handler:    _ServiceMedia_UploadImage_Handler,
+			MethodName: "Upload",
+			Handler:    _ServiceMedia_Upload_Handler,
 		},
 		{
 			MethodName: "DeleteImage",
 			Handler:    _ServiceMedia_DeleteImage_Handler,
 		},
-	},
-	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "UploadLargeFile",
-			Handler:       _ServiceMedia_UploadLargeFile_Handler,
-			ClientStreams: true,
+			MethodName: "GetImageUrl",
+			Handler:    _ServiceMedia_GetImageUrl_Handler,
+		},
+		{
+			MethodName: "GetVideoUrl",
+			Handler:    _ServiceMedia_GetVideoUrl_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "service_media.proto",
 }

@@ -31,24 +31,18 @@ func NewDeleteImageHandler(
 }
 
 func (h *deleteImageHandler) Handle(ctx context.Context, cmd DeleteImage) (any, error) {
-	fileInfo, err := h.media.GetOjectInfo(ctx, &media.File{
-		Name:      cmd.Filename,
-		Bucket:    media.ImageBucket,
-		ProductID: uuid.New(),
-		Data:      nil,
+
+	err := h.media.DeleteObject(ctx, &media.File{
+		ID:    uuid.MustParse(cmd.GetId()),
+		Data: nil,
+		Bucket: media.ImageBucket,
+		ProductID: uuid.Nil,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	err = h.media.DeleteObject(ctx, &media.File{})
-	if err != nil {
-		return nil, err
-	}
-
-	product_id := fileInfo.UserMetadata["product_id"]
-
-	_, err = h.store.DeleteProductImageByID(ctx, uuid.MustParse(product_id))
+	_, err = h.store.DeleteProductImageByID(ctx, uuid.MustParse(cmd.GetId()))
 	if err != nil {
 		return nil, err
 	}

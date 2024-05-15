@@ -49,7 +49,7 @@ func (server *Server) CreateProduct(ctx context.Context, req *pb.CreateProductRe
 	// create category
 	arg := db.CreateProductParams{
 		IDCategory:  uuid.MustParse(req.GetCategoryId()),
-		IDAccount:   uuid.MustParse(authResponse.Account.Id),
+		IDAccount:   uuid.MustParse(authResponse.UserId),
 		Name:        req.GetName(),
 		Description: req.GetDescription(),
 		BrandName:   req.GetBrandName(),

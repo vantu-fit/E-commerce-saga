@@ -166,7 +166,7 @@ func (q *Queries) GetProductCategory(ctx context.Context, name string) ([]GetPro
 }
 
 const getProductForUpdate = `-- name: GetProductForUpdate :one
-SELECT id, id_category, id_account, name, description, brand_name, price, inventory, updated_at, created_at FROM products WHERE id = $1 FOR UPDATE
+SELECT id, id_category, id_account, name, description, brand_name, price, inventory, updated_at, created_at FROM products WHERE id = $1 LIMIT 1 FOR UPDATE
 `
 
 func (q *Queries) GetProductForUpdate(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -184,6 +184,22 @@ func (q *Queries) GetProductForUpdate(ctx context.Context, id uuid.UUID) (Produc
 		&i.UpdatedAt,
 		&i.CreatedAt,
 	)
+	return i, err
+}
+
+const getProductInventory = `-- name: GetProductInventory :one
+SELECT id,inventory FROM products WHERE id = $1
+`
+
+type GetProductInventoryRow struct {
+	ID        uuid.UUID `json:"id"`
+	Inventory int64     `json:"inventory"`
+}
+
+func (q *Queries) GetProductInventory(ctx context.Context, id uuid.UUID) (GetProductInventoryRow, error) {
+	row := q.db.QueryRow(ctx, getProductInventory, id)
+	var i GetProductInventoryRow
+	err := row.Scan(&i.ID, &i.Inventory)
 	return i, err
 }
 
@@ -262,6 +278,38 @@ func (q *Queries) UpadateProduct(ctx context.Context, arg UpadateProductParams) 
 		arg.Inventory,
 		arg.ID,
 	)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.IDCategory,
+		&i.IDAccount,
+		&i.Name,
+		&i.Description,
+		&i.BrandName,
+		&i.Price,
+		&i.Inventory,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateProductInventory = `-- name: UpdateProductInventory :one
+UPDATE products
+SET
+  inventory = inventory + $2
+WHERE
+  id = $1
+RETURNING id, id_category, id_account, name, description, brand_name, price, inventory, updated_at, created_at
+`
+
+type UpdateProductInventoryParams struct {
+	ID        uuid.UUID `json:"id"`
+	Inventory int64     `json:"inventory"`
+}
+
+func (q *Queries) UpdateProductInventory(ctx context.Context, arg UpdateProductInventoryParams) (Product, error) {
+	row := q.db.QueryRow(ctx, updateProductInventory, arg.ID, arg.Inventory)
 	var i Product
 	err := row.Scan(
 		&i.ID,

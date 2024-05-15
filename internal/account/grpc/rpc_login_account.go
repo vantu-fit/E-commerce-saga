@@ -32,31 +32,29 @@ func (server *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	}
 
 	// compare password
-	err = hash.CheckPassword( account.Password , req.GetPassword())
+	err = hash.CheckPassword(account.Password, req.GetPassword())
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid password: %s", err)
 	}
 	// create refreshtoken
-	refreshToken, refreshPayload, err := server.maker.CreateToken( uuid.New() , account.Email, time.Hour*time.Duration(server.config.PasetoConfig.RefreshTokenExpire))
+	refreshToken, refreshPayload, err := server.maker.CreateToken(uuid.New(), account.ID, time.Hour*time.Duration(server.config.PasetoConfig.RefreshTokenExpire))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot create refresh token: %s", err)
 	}
 
 	// create accesstoken
-	accessToken, _, err := server.maker.CreateToken( refreshPayload.ID , account.Email, time.Minute*time.Duration(server.config.PasetoConfig.AccessTokenExpire))
+	accessToken, _, err := server.maker.CreateToken(refreshPayload.ID, account.ID, time.Minute*time.Duration(server.config.PasetoConfig.AccessTokenExpire))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot create access token: %s", err)
 	}
 
-
 	// create session
 	argSession := db.CreateSessionParams{
 		ID:           refreshPayload.ID,
-		Email:        account.Email,
+		UserID:       refreshPayload.UserID,
 		RefreshToken: refreshToken,
 		UserAgent:    "",
 		ClientIp:     "",
-		ExpiresAt:    refreshPayload.ExpiredAt,
 	}
 
 	session, err := server.store.CreateSession(ctx, argSession)

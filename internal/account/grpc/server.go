@@ -5,15 +5,16 @@ import (
 	"net"
 	"time"
 
+	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/vantu-fit/saga-pattern/cmd/account/config"
 	db "github.com/vantu-fit/saga-pattern/internal/account/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/account/token"
 	"github.com/vantu-fit/saga-pattern/pb"
+	kafkaClient "github.com/vantu-fit/saga-pattern/pkg/kafka"
 	"github.com/vantu-fit/saga-pattern/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
-	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 )
 
 type Server struct {
@@ -21,10 +22,15 @@ type Server struct {
 	config     *config.Config
 	maker      token.Maker
 	store      db.Store
+	producer   kafkaClient.Producer
 	grpcServer *grpc.Server
 }
 
-func NewServer(config *config.Config, store db.Store) (*Server, error) {
+func NewServer(
+	config *config.Config, 
+	store db.Store ,
+	producer kafkaClient.Producer,
+) (*Server, error) {
 	maker, err := token.NewPasetoMaker(config.PasetoConfig.SymmetricKey)
 	if err != nil {
 		return nil, err
@@ -34,6 +40,7 @@ func NewServer(config *config.Config, store db.Store) (*Server, error) {
 		config: config,
 		store:  store,
 		maker:  maker,
+		producer: producer,
 	}
 
 	server.grpcServer = grpc.NewServer(
@@ -42,7 +49,7 @@ func NewServer(config *config.Config, store db.Store) (*Server, error) {
 			MaxConnectionAge:  config.GRPC.MaxConnectionAge * time.Minute,
 			Timeout:           config.GRPC.Timeout * time.Second,
 			Time:              config.GRPC.Time * time.Second,
-		}),		
+		}),
 		grpc.ChainUnaryInterceptor(
 			grpcrecovery.UnaryServerInterceptor(),
 		),

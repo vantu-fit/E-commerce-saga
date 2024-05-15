@@ -45,6 +45,11 @@ var (
 	// ReplyTopic is saga step reply topic
 	ReplyTopic   = "reply"
 	ReplyGroupID = "reply-group"
+
+	// Mail
+	SendRegisterEmailTopic   = "send-register-email"
+	SendRegisterEmailGroupID = "send-register-email-group"
+	SendRegisterEmailHandler = "send-register-email-handler"
 )
 
 var (

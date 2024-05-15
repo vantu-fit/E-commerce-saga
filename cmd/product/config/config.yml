@@ -46,7 +46,7 @@ localCache:
     ExpirationTime: 600
 
 redisCache:
-    Address: ["localhost:7000", "localhost:7001", "localhost:7002", "localhost:7003", "localhost:7004", "localhost:7005"]
+    Address: ["172.24.83.66:7001", "172.24.83.66:7002", "172.24.83.66:7003","172.24.83.66:7004", "172.24.83.66:7000", "172.24.83.66:7005" ]
     Password: ""
     DB: 0
     PoolSize: 10

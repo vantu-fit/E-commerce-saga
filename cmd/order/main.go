@@ -54,7 +54,12 @@ func main() {
 	defer stop()
 
 	// run migrate DB
-	conn, err := pgxpool.New(ctx, cfg.Postgres.DnsURL)
+	poolConfig, err := pgxpool.ParseConfig(cfg.Postgres.DnsURL)
+	if err != nil {
+		log.Fatal().Msgf("Parse pgx pool config: %v", err)
+	}
+	poolConfig.MaxConns = 500// Set maximum connections in the pool
+	conn, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)

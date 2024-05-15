@@ -2,11 +2,15 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+	"github.com/segmentio/kafka-go"
 	db "github.com/vantu-fit/saga-pattern/internal/account/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/pb"
+	"github.com/vantu-fit/saga-pattern/pkg/event"
 	"github.com/vantu-fit/saga-pattern/pkg/hash"
 	val "github.com/vantu-fit/saga-pattern/pkg/validator"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -42,13 +46,13 @@ func (server *Server) CreateAccount(ctx context.Context, req *pb.CreateAccountRe
 	}
 
 	// create refreshtoken
-	refreshToken, refreshPayload, err := server.maker.CreateToken(uuid.New(), account.Email, time.Hour*time.Duration(server.config.PasetoConfig.RefreshTokenExpire))
+	refreshToken, refreshPayload, err := server.maker.CreateToken(uuid.New(), account.ID, time.Hour*time.Duration(server.config.PasetoConfig.RefreshTokenExpire))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot create refresh token: %s", err)
 	}
 
 	// create accesstoken
-	accessToken, _, err := server.maker.CreateToken(refreshPayload.ID, account.Email, time.Minute*time.Duration(server.config.PasetoConfig.AccessTokenExpire))
+	accessToken, _, err := server.maker.CreateToken(refreshPayload.ID, account.ID, time.Minute*time.Duration(server.config.PasetoConfig.AccessTokenExpire))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "cannot create access token: %s", err)
 	}
@@ -56,11 +60,10 @@ func (server *Server) CreateAccount(ctx context.Context, req *pb.CreateAccountRe
 	// create session
 	argSession := db.CreateSessionParams{
 		ID:           refreshPayload.ID,
-		Email:        account.Email,
+		UserID:       account.ID,
 		RefreshToken: refreshToken,
 		UserAgent:    "",
 		ClientIp:     "",
-		ExpiresAt:    refreshPayload.ExpiredAt,
 	}
 
 	session, err := server.store.CreateSession(ctx, argSession)
@@ -83,6 +86,27 @@ func (server *Server) CreateAccount(ctx context.Context, req *pb.CreateAccountRe
 			UpdatedAt:   timestamppb.New(account.UpdatedAt),
 			CreatedAt:   timestamppb.New(account.CreatedAt),
 		},
+	}
+
+	pdSendMail := pb.SendRegisterEmailRequest{
+		FromName: "Saga Orchestrator",
+		From:     "saga@gmail.com",
+		To:       account.Email,
+		Subject:  "Register Success",
+	}
+
+	payload, err := json.Marshal(&pdSendMail)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "cannot marshal payload: %s", err)
+	}
+
+	err = server.producer.PublishMessage(ctx, kafka.Message{
+		Topic: event.SendRegisterEmailTopic,
+		Value: payload,
+	})
+
+	if err != nil {
+		log.Error().Msgf("cannot publish message: %s", err)
 	}
 
 	return &response, nil

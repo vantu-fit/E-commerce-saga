@@ -19,9 +19,11 @@ type Querier interface {
 	GetProductByID(ctx context.Context, id uuid.UUID) (Product, error)
 	GetProductCategory(ctx context.Context, name string) ([]GetProductCategoryRow, error)
 	GetProductForUpdate(ctx context.Context, id uuid.UUID) (Product, error)
+	GetProductInventory(ctx context.Context, id uuid.UUID) (GetProductInventoryRow, error)
 	ListProducts(ctx context.Context, arg ListProductsParams) ([]Product, error)
 	UpadateProduct(ctx context.Context, arg UpadateProductParams) (Product, error)
 	UpdateIdempotency(ctx context.Context, arg UpdateIdempotencyParams) ([]Idempotency, error)
+	UpdateProductInventory(ctx context.Context, arg UpdateProductInventoryParams) (Product, error)
 }
 
 var _ Querier = (*Queries)(nil)

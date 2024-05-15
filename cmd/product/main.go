@@ -61,7 +61,12 @@ func main() {
 	defer stop()
 
 	// run migrate DB
-	conn, err := pgxpool.New(ctx, cfg.Postgres.DnsURL)
+	poolConfig, err := pgxpool.ParseConfig(cfg.Postgres.DnsURL)
+	if err != nil {
+		log.Fatal().Msgf("Parse pgx pool config: %v", err)
+	}
+	poolConfig.MaxConns = 500// Set maximum connections in the pool
+	conn, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
@@ -97,18 +102,17 @@ func main() {
 	}
 
 	redisCache := cache.NewRedisCache(redisClient, time.Duration(cfg.RedisCache.ExpirationTime)*time.Second)
-
+	
 	// create store cache
-	storeCache := db.NewCacheStore(store, localCache, redisCache)
-
-	_ = storeCache
-
+	storeCache := db.NewStoreCache(store, localCache, redisCache)
+	
+	// create product service
+	productService := service.NewService(storeCache)
 	// create kafka client
 	producer := kafkaClient.NewProducer(cfg.Kafka.Brokers)
 	consumer := kafkaClient.NewConsumerGroup(cfg.Kafka.Brokers)
 
 	// create product service
-	productService := service.NewService(store)
 
 	// create event handler
 	eventHandler := event.NewEventHandler(cfg, consumer, producer , &productService)
@@ -124,7 +128,7 @@ func main() {
 	}()
 
 	// create grpc server
-	grpcServer, err := grpc.NewServer(cfg, store, grpcClient)
+	grpcServer, err := grpc.NewServer(cfg, storeCache, grpcClient , &productService)
 	if err != nil {
 		log.Fatal().Msgf("Create grpc server: %v", err)
 	}
@@ -138,7 +142,7 @@ func main() {
 	}()
 
 	// create http gateway server
-	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, store, grpcClient)
+	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, storeCache , grpcClient,&productService)
 	if err != nil {
 		log.Fatal().Msgf("Create http gateway server: %v", err)
 	}

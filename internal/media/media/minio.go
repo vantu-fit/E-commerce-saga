@@ -13,10 +13,11 @@ import (
 )
 
 type File struct {
-	Name      string
+	ID        uuid.UUID
 	Data      io.Reader
 	Bucket    string
 	ProductID uuid.UUID
+	Contentype string
 }
 
 type Media interface {
@@ -43,7 +44,7 @@ func (m *media) UploadObject(ctx context.Context, file *File) error {
 	metadata := map[string]string{
 		"product_id": file.ProductID.String(),
 	}
-	_, err := m.minio.PutObject(ctx, file.Bucket, file.Name, file.Data, -1, minio.PutObjectOptions{
+	_, err := m.minio.PutObject(ctx, file.Bucket, file.ID.String() + file.Contentype, file.Data, -1, minio.PutObjectOptions{
 		UserMetadata: metadata,
 	})
 	if err != nil {
@@ -53,17 +54,17 @@ func (m *media) UploadObject(ctx context.Context, file *File) error {
 }
 
 func (m *media) GetOjectInfo(ctx context.Context, file *File) (*minio.ObjectInfo, error) {
-	info , err := m.minio.StatObject(ctx, file.Bucket, file.Name, minio.GetObjectOptions{})
+	info, err := m.minio.StatObject(ctx, file.Bucket,file.ID.String() + file.Contentype, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, err
 	}
-	return &info , nil
+	return &info, nil
 }
 
 func (m *media) GetUrl(ctx context.Context, file *File) (string, error) {
 	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", file.Name))
-	reqInfo, err := m.minio.PresignedGetObject(ctx, file.Bucket, file.Name, time.Hour*24*7, reqParams)
+	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", file.ID.String()))
+	reqInfo, err := m.minio.PresignedGetObject(ctx, file.Bucket, file.ID.String() + file.Contentype, time.Hour*24*7, reqParams)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +72,7 @@ func (m *media) GetUrl(ctx context.Context, file *File) (string, error) {
 }
 
 func (m *media) DeleteObject(ctx context.Context, file *File) error {
-	err := m.minio.RemoveObject(ctx, file.Bucket, file.Name , minio.RemoveObjectOptions{})
+	err := m.minio.RemoveObject(ctx, file.Bucket, file.ID.String() + file.Contentype, minio.RemoveObjectOptions{})
 	if err != nil {
 		return err
 	}

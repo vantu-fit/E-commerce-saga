@@ -13,27 +13,34 @@ import (
 
 const createProductImage = `-- name: CreateProductImage :one
 INSERT INTO product_images (
+    id,
+    content_type,
     product_id,
-    name,
     alt
 ) VALUES (
-    $1, $2, $3
-) RETURNING id, product_id, name, alt, created_at
+    $1, $2, $3 , $4
+) RETURNING id, content_type, product_id, alt, created_at
 `
 
 type CreateProductImageParams struct {
-	ProductID uuid.UUID `json:"product_id"`
-	Name      string    `json:"name"`
-	Alt       string    `json:"alt"`
+	ID          uuid.UUID `json:"id"`
+	ContentType string    `json:"content_type"`
+	ProductID   uuid.UUID `json:"product_id"`
+	Alt         string    `json:"alt"`
 }
 
 func (q *Queries) CreateProductImage(ctx context.Context, arg CreateProductImageParams) (ProductImage, error) {
-	row := q.db.QueryRow(ctx, createProductImage, arg.ProductID, arg.Name, arg.Alt)
+	row := q.db.QueryRow(ctx, createProductImage,
+		arg.ID,
+		arg.ContentType,
+		arg.ProductID,
+		arg.Alt,
+	)
 	var i ProductImage
 	err := row.Scan(
 		&i.ID,
+		&i.ContentType,
 		&i.ProductID,
-		&i.Name,
 		&i.Alt,
 		&i.CreatedAt,
 	)
@@ -41,7 +48,7 @@ func (q *Queries) CreateProductImage(ctx context.Context, arg CreateProductImage
 }
 
 const deleteProductImageByID = `-- name: DeleteProductImageByID :one
-DELETE FROM product_images WHERE id = $1 RETURNING id, product_id, name, alt, created_at
+DELETE FROM product_images WHERE id = $1 RETURNING id, content_type, product_id, alt, created_at
 `
 
 func (q *Queries) DeleteProductImageByID(ctx context.Context, id uuid.UUID) (ProductImage, error) {
@@ -49,8 +56,8 @@ func (q *Queries) DeleteProductImageByID(ctx context.Context, id uuid.UUID) (Pro
 	var i ProductImage
 	err := row.Scan(
 		&i.ID,
+		&i.ContentType,
 		&i.ProductID,
-		&i.Name,
 		&i.Alt,
 		&i.CreatedAt,
 	)
@@ -58,7 +65,7 @@ func (q *Queries) DeleteProductImageByID(ctx context.Context, id uuid.UUID) (Pro
 }
 
 const deleteProductImageByProductID = `-- name: DeleteProductImageByProductID :many
-DELETE FROM product_images WHERE product_id = $1 RETURNING id, product_id, name, alt, created_at
+DELETE FROM product_images WHERE product_id = $1 RETURNING id, content_type, product_id, alt, created_at
 `
 
 func (q *Queries) DeleteProductImageByProductID(ctx context.Context, productID uuid.UUID) ([]ProductImage, error) {
@@ -72,8 +79,8 @@ func (q *Queries) DeleteProductImageByProductID(ctx context.Context, productID u
 		var i ProductImage
 		if err := rows.Scan(
 			&i.ID,
+			&i.ContentType,
 			&i.ProductID,
-			&i.Name,
 			&i.Alt,
 			&i.CreatedAt,
 		); err != nil {
@@ -88,7 +95,7 @@ func (q *Queries) DeleteProductImageByProductID(ctx context.Context, productID u
 }
 
 const getProductImageByID = `-- name: GetProductImageByID :one
-SELECT id, product_id, name, alt, created_at FROM product_images WHERE id = $1
+SELECT id, content_type, product_id, alt, created_at FROM product_images WHERE id = $1
 `
 
 func (q *Queries) GetProductImageByID(ctx context.Context, id uuid.UUID) (ProductImage, error) {
@@ -96,8 +103,8 @@ func (q *Queries) GetProductImageByID(ctx context.Context, id uuid.UUID) (Produc
 	var i ProductImage
 	err := row.Scan(
 		&i.ID,
+		&i.ContentType,
 		&i.ProductID,
-		&i.Name,
 		&i.Alt,
 		&i.CreatedAt,
 	)
@@ -105,7 +112,7 @@ func (q *Queries) GetProductImageByID(ctx context.Context, id uuid.UUID) (Produc
 }
 
 const getProductImagesByProductID = `-- name: GetProductImagesByProductID :many
-SELECT id, product_id, name, alt, created_at FROM product_images WHERE product_id = $1
+SELECT id, content_type, product_id, alt, created_at FROM product_images WHERE product_id = $1
 `
 
 func (q *Queries) GetProductImagesByProductID(ctx context.Context, productID uuid.UUID) ([]ProductImage, error) {
@@ -119,8 +126,8 @@ func (q *Queries) GetProductImagesByProductID(ctx context.Context, productID uui
 		var i ProductImage
 		if err := rows.Scan(
 			&i.ID,
+			&i.ContentType,
 			&i.ProductID,
-			&i.Name,
 			&i.Alt,
 			&i.CreatedAt,
 		); err != nil {

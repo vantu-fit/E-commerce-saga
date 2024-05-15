@@ -5,14 +5,14 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 	db "github.com/vantu-fit/saga-pattern/internal/media/db/sqlc"
 	"github.com/vantu-fit/saga-pattern/internal/media/media"
 	"github.com/vantu-fit/saga-pattern/pb"
 )
 
 type UploadImage struct {
-	*pb.UploadImageRequest
+	*pb.UploadRequest
+	Contentype string
 }
 
 type UploadImageHandler CommandHandler[UploadImage, string]
@@ -33,29 +33,28 @@ func NewUploadImageHandler(
 }
 
 func (h *uploadImageHandler) Handle(ctx context.Context, cmd UploadImage) (string, error) {
-	log.Error().Msg("UploadImageHandler")
-	//size := len(cmd.Data)
-	log.Info().Msgf("UploadImageHandler: %v" , len(cmd.Data))
+	image_id := uuid.New()
 	err := h.media.UploadObject(ctx, &media.File{
-		Name:      cmd.Filename,
 		Data:      bytes.NewReader(cmd.Data),
 		Bucket:    media.ImageBucket,
 		ProductID: uuid.MustParse(cmd.GetProductId()),
+		ID: image_id,
+		Contentype: cmd.Contentype,
 	})
 	if err != nil {
 		return "", err
 	}
-	log.Error().Msg("UploadObject")
 	_, err = h.store.CreateProductImage(ctx, db.CreateProductImageParams{
+		ContentType: cmd.Contentype,
+		ID:        image_id,
 		ProductID: uuid.MustParse(cmd.GetProductId()),
-		Name:      cmd.Filename,
 		Alt:       cmd.Alt,
 	})
 	if err != nil {
 		return "", err
 	}
 
-	url := "http://" + h.media.GetConfig().Minio.Endpoint + "/" + media.ImageBucket + "/" + cmd.Filename
+	url := "http://" + h.media.GetConfig().Minio.Endpoint + "/" + media.ImageBucket + "/" + image_id.String() + cmd.Contentype
 
 	return url, nil
 }

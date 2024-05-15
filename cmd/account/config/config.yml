@@ -17,6 +17,8 @@ grpc:
   MaxConnectionAge: 5
   ShutdownWait: 0
 
+kafka:
+  Brokers: ["localhost:9091"]
 
 logger:
   Development: true
@@ -37,4 +39,16 @@ pasetoConfig:
   SymmetricKey: "804a3f9aa8ad199cb71ae7bacefd9357"
   AccessTokenExpire: 5 # in minutes
   RefreshTokenExpire: 15 # in minutes
+
+redisCache:
+  Address: ["172.24.83.66:7001", "172.24.83.66:7002", "172.24.83.66:7003","172.24.83.66:7004", "172.24.83.66:7000", "172.24.83.66:7005" ]
+  Password: 
+  DB: 0
+  PoolSize: 10
+  MaxRetries: 3
+  ExpirationTime: 900
+  CuckooFilter:
+    Capacity: 600000
+    BucketSize: 2
+    MaxIterations: 20
 

@@ -21,7 +21,7 @@ import (
 var (
 	retryAttempts uint = 10
 	retryDelay         = 1 * time.Second
-	PoolSize           = 16
+	PoolSize           = 100
 )
 
 type EventHanlder interface {

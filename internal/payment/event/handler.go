@@ -22,7 +22,7 @@ import (
 var (
 	retryAttempts uint = 10
 	retryDelay         = 1 * time.Second
-	poolSize           = 16
+	poolSize           = 64
 )
 
 type EventHandler interface {

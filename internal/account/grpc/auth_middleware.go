@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/vantu-fit/saga-pattern/internal/account/token"
@@ -22,8 +21,6 @@ func (server *Server) authorizationUser(ctx context.Context) (*token.Payload, er
 	if !ok {
 		return nil, fmt.Errorf("missing metadata")
 	}
-
-	log.Printf("metadata: %v", md)
 
 	values := md.Get(authorizationHeader)
 	if len(values) == 0 {

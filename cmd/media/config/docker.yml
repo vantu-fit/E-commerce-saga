@@ -28,7 +28,7 @@ grpcClient:
   Order: order_service:50051
 
 minio:
-  Endpoint: "minio:9000"
+  Endpoint: "localhost:9000"
   Username: admin123456
   Password: secret123456
 

@@ -88,8 +88,14 @@ message UpdateProductResponse {
   Product product = 1;
 }
 
+message CheckProductRequest {
+  string id = 1;
+  int64 quantity = 2;
+}
 
-
+message CheckProductResponse {
+  bool valid = 1;
+}
 
 service ServiceProduct {
     rpc Ping (PingRequest) returns (PingResponse){
@@ -131,6 +137,18 @@ service ServiceProduct {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
           description: "Use this API to get product by id.";
           summary: "Get product by id";
+        };
+    }
+
+    rpc CheckProduct(CheckProductRequest) returns (CheckProductResponse){
+        option (google.api.http) = {
+                  post: "/api/v1/products/check"
+                  body: "*"
+        };
+
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to check product.";
+          summary: "Check product";
         };
     }
 

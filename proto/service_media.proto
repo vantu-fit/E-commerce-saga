@@ -21,53 +21,57 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 
-message UploadImageRequest {
+message UploadRequest {
   bytes data = 1;
-  string filename = 2;
-  string alt = 3;
-  string product_id = 4;
+  string alt = 2;
+  string product_id = 3;
 }
 
-message UploadImageResponse {
-  string url = 1;
+message UploadResponse {
+  repeated string url = 1;
 }
 
 
 message DeleteImageRequest {
-  string filename = 1;
+  string id = 1;
 }
 
 message DeleteImageResponse {
   string success = 1;
 }
 
-message UploadRequest {
-  // Trường chứa phần của file
-  bytes chunk = 1;
-  // Trường để xác định thứ tự của chunk
-  int32 sequence_number = 2;
+message GetUrlRequest {
+  string product_id = 1;
 }
 
-// Message response từ server sau khi upload file lớn hoàn thành
-message UploadResponse {
-  // Trường thông điệp để biết rằng việc upload đã thành công
-  string message = 1;
-  // Các thông tin khác tùy thuộc vào yêu cầu của bạn
+message GetUrlResponse {
+  repeated string url = 1;
 }
 
 // Định nghĩa service để upload file lớn
 service ServiceMedia {
-  rpc UploadImage (UploadImageRequest) returns (UploadImageResponse) {
+  rpc Upload (UploadRequest) returns (UploadResponse) {
     option (google.api.http) = {
-      post: "/v1/media/image";
+      post: "/api/v1/media/upload";
       body: "*";
     };
   }
   
   rpc DeleteImage (DeleteImageRequest) returns (DeleteImageResponse) {
     option (google.api.http) = {
-      delete: "/v1/media/image/{filename}";
+      delete: "/api/v1/media/image/{id}";
     };
   }
-  rpc UploadLargeFile(stream UploadRequest) returns (UploadResponse);
+
+  rpc GetImageUrl (GetUrlRequest) returns (GetUrlResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/media/image/{product_id}";
+    };
+  }
+
+  rpc GetVideoUrl (GetUrlRequest) returns (GetUrlResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/media/video/{product_id}";
+    };
+  }
 }

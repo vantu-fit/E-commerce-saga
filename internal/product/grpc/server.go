@@ -7,6 +7,7 @@ import (
 	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/vantu-fit/saga-pattern/cmd/product/config"
 	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
+	"github.com/vantu-fit/saga-pattern/internal/product/service"
 	"github.com/vantu-fit/saga-pattern/pb"
 	grpcclient "github.com/vantu-fit/saga-pattern/pkg/grpc_client"
 	"github.com/vantu-fit/saga-pattern/pkg/logger"
@@ -19,15 +20,22 @@ type Server struct {
 	pb.UnimplementedServiceProductServer
 	config     *config.Config
 	store      db.Store
+	service    *service.Service
 	grpcServer *grpc.Server
 	grpcClient *grpcclient.Client
 }
 
-func NewServer(config *config.Config, store db.Store, grpcClient *grpcclient.Client) (*Server, error) {
+func NewServer(
+	config *config.Config,
+	store db.Store,
+	grpcClient *grpcclient.Client,
+	service *service.Service,
+) (*Server, error) {
 	server := &Server{
 		config:     config,
 		store:      store,
 		grpcClient: grpcClient,
+		service:    service,
 	}
 
 	server.grpcServer = grpc.NewServer(

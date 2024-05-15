@@ -1,10 +1,11 @@
 -- name: CreateProductImage :one
 INSERT INTO product_images (
+    id,
+    content_type,
     product_id,
-    name,
     alt
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3 , $4
 ) RETURNING *;
 -- name: DeleteProductImageByID :one
 DELETE FROM product_images WHERE id = $1 RETURNING *;

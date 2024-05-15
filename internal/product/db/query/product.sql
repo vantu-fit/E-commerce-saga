@@ -18,7 +18,7 @@ SELECT * FROM products JOIN categories ON products.id_category = categories.id W
 SELECT * FROM products WHERE id = $1;
 
 -- name: GetProductForUpdate :one
-SELECT * FROM products WHERE id = $1 FOR UPDATE;
+SELECT * FROM products WHERE id = $1 LIMIT 1 FOR UPDATE;
 
 -- name: UpadateProduct :one
 UPDATE products
@@ -34,8 +34,19 @@ WHERE
   id = sqlc.arg(id)
 RETURNING *;
 
+-- name: UpdateProductInventory :one
+UPDATE products
+SET
+  inventory = inventory + $2
+WHERE
+  id = $1
+RETURNING *;
+
 -- name: DeleteProduct :one
 DELETE FROM products WHERE id = $1 RETURNING *;
 
 -- name: ListProducts :many
 SELECT * FROM products ORDER BY id OFFSET $1 LIMIT $2;
+
+-- name: GetProductInventory :one
+SELECT id,inventory FROM products WHERE id = $1;

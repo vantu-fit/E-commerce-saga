@@ -13,27 +13,34 @@ import (
 
 const createProductVideo = `-- name: CreateProductVideo :one
 INSERT INTO product_videos (
+    id,
+    content_type,
     product_id,
-    name,
     alt
 ) VALUES (
-    $1, $2, $3
-) RETURNING id, product_id, name, alt, created_at
+    $1, $2, $3 , $4
+) RETURNING id, content_type, product_id, alt, created_at
 `
 
 type CreateProductVideoParams struct {
-	ProductID uuid.UUID `json:"product_id"`
-	Name      string    `json:"name"`
-	Alt       string    `json:"alt"`
+	ID          uuid.UUID `json:"id"`
+	ContentType string    `json:"content_type"`
+	ProductID   uuid.UUID `json:"product_id"`
+	Alt         string    `json:"alt"`
 }
 
 func (q *Queries) CreateProductVideo(ctx context.Context, arg CreateProductVideoParams) (ProductVideo, error) {
-	row := q.db.QueryRow(ctx, createProductVideo, arg.ProductID, arg.Name, arg.Alt)
+	row := q.db.QueryRow(ctx, createProductVideo,
+		arg.ID,
+		arg.ContentType,
+		arg.ProductID,
+		arg.Alt,
+	)
 	var i ProductVideo
 	err := row.Scan(
 		&i.ID,
+		&i.ContentType,
 		&i.ProductID,
-		&i.Name,
 		&i.Alt,
 		&i.CreatedAt,
 	)
@@ -41,7 +48,7 @@ func (q *Queries) CreateProductVideo(ctx context.Context, arg CreateProductVideo
 }
 
 const deleteProductVideoByID = `-- name: DeleteProductVideoByID :one
-DELETE FROM product_videos WHERE id = $1 RETURNING id, product_id, name, alt, created_at
+DELETE FROM product_videos WHERE id = $1 RETURNING id, content_type, product_id, alt, created_at
 `
 
 func (q *Queries) DeleteProductVideoByID(ctx context.Context, id uuid.UUID) (ProductVideo, error) {
@@ -49,8 +56,8 @@ func (q *Queries) DeleteProductVideoByID(ctx context.Context, id uuid.UUID) (Pro
 	var i ProductVideo
 	err := row.Scan(
 		&i.ID,
+		&i.ContentType,
 		&i.ProductID,
-		&i.Name,
 		&i.Alt,
 		&i.CreatedAt,
 	)
@@ -58,7 +65,7 @@ func (q *Queries) DeleteProductVideoByID(ctx context.Context, id uuid.UUID) (Pro
 }
 
 const deleteProductVideoByProductID = `-- name: DeleteProductVideoByProductID :many
-DELETE FROM product_videos WHERE product_id = $1 RETURNING id, product_id, name, alt, created_at
+DELETE FROM product_videos WHERE product_id = $1 RETURNING id, content_type, product_id, alt, created_at
 `
 
 func (q *Queries) DeleteProductVideoByProductID(ctx context.Context, productID uuid.UUID) ([]ProductVideo, error) {
@@ -72,8 +79,8 @@ func (q *Queries) DeleteProductVideoByProductID(ctx context.Context, productID u
 		var i ProductVideo
 		if err := rows.Scan(
 			&i.ID,
+			&i.ContentType,
 			&i.ProductID,
-			&i.Name,
 			&i.Alt,
 			&i.CreatedAt,
 		); err != nil {
@@ -88,7 +95,7 @@ func (q *Queries) DeleteProductVideoByProductID(ctx context.Context, productID u
 }
 
 const getProductVideoByID = `-- name: GetProductVideoByID :one
-SELECT id, product_id, name, alt, created_at FROM product_videos WHERE id = $1
+SELECT id, content_type, product_id, alt, created_at FROM product_videos WHERE id = $1
 `
 
 func (q *Queries) GetProductVideoByID(ctx context.Context, id uuid.UUID) (ProductVideo, error) {
@@ -96,8 +103,8 @@ func (q *Queries) GetProductVideoByID(ctx context.Context, id uuid.UUID) (Produc
 	var i ProductVideo
 	err := row.Scan(
 		&i.ID,
+		&i.ContentType,
 		&i.ProductID,
-		&i.Name,
 		&i.Alt,
 		&i.CreatedAt,
 	)
@@ -105,7 +112,7 @@ func (q *Queries) GetProductVideoByID(ctx context.Context, id uuid.UUID) (Produc
 }
 
 const getProductVideoByProductID = `-- name: GetProductVideoByProductID :many
-SELECT id, product_id, name, alt, created_at FROM product_videos WHERE product_id = $1
+SELECT id, content_type, product_id, alt, created_at FROM product_videos WHERE product_id = $1
 `
 
 func (q *Queries) GetProductVideoByProductID(ctx context.Context, productID uuid.UUID) ([]ProductVideo, error) {
@@ -119,8 +126,8 @@ func (q *Queries) GetProductVideoByProductID(ctx context.Context, productID uuid
 		var i ProductVideo
 		if err := rows.Scan(
 			&i.ID,
+			&i.ContentType,
 			&i.ProductID,
-			&i.Name,
 			&i.Alt,
 			&i.CreatedAt,
 		); err != nil {

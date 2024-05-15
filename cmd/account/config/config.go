@@ -12,9 +12,11 @@ type Config struct {
 	App       interface{}
 	HTTP      HTTP
 	GRPC      GRPC
+	Kafka     Kafka
 	Postgres  Postgres
 	Migration Migration
 	PasetoConfig PasetoConfig
+	RedisCache RedisCache `mapstructure:"RedisCache"`
 }
 
 type HTTP struct {
@@ -29,6 +31,10 @@ type GRPC struct {
 	MaxConnectionIdle time.Duration
 	MaxConnectionAge  time.Duration
 	ShutdownWait      time.Duration
+}
+
+type Kafka struct {
+	Brokers []string
 }
 
 type Postgres struct {
@@ -46,6 +52,23 @@ type PasetoConfig struct {
 	AccessTokenExpire  uint
 	RefreshTokenExpire uint
 }
+
+type RedisCache struct {
+	Address        []string
+	Password       string
+	DB             int
+	PoolSize       int
+	MaxRetries     int
+	ExpirationTime uint64
+	CuckooFilter   CuckooFilter `mapstructure:"CuckooFilter"`
+}
+
+type CuckooFilter struct {
+	Capacity      int64
+	BucketSize    int64
+	MaxIterations int64
+}
+
 
 func LoadConfig(filename string) (*viper.Viper, error) {
 	v := viper.New()

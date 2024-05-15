@@ -1,10 +1,11 @@
 -- name: CreateProductVideo :one
 INSERT INTO product_videos (
+    id,
+    content_type,
     product_id,
-    name,
     alt
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3 , $4
 ) RETURNING *;
 -- name: DeleteProductVideoByID :one
 DELETE FROM product_videos WHERE id = $1 RETURNING *;

@@ -16,6 +16,8 @@ grpc:
   MaxConnectionIdle: 30
   MaxConnectionAge: 5
 
+kafka:
+  Brokers: ["kafka:9091"]
 
 logger:
   Development: true
@@ -37,3 +39,15 @@ pasetoConfig:
   SymmetricKey: "804a3f9aa8ad199cb71ae7bacefd9357"
   AccessTokenExpire: 5 # in minutes
   RefreshTokenExpire: 15 # in minutes
+
+redisCache:
+  Address: ["redis-node-1:7000", "redis-node-2:7001", "redis-node-3:7002", "redis-node-4:7003", "redis-node-5:7004", "redis-node-6:7005"]
+  Password: ""
+  DB: 0
+  PoolSize: 10
+  MaxRetries: 3
+  ExpirationTime: 900
+  CuckooFilter:
+    Capacity: 600000
+    BucketSize: 2
+    MaxIterations: 20

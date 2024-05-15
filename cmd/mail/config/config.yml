@@ -1,0 +1,30 @@
+service:
+  Name: mail_service
+  Mode: Development
+  Debug: true
+  ReadTimeout: 5
+  WriteTimeout: 5
+
+http:
+  Port: 8088
+  Mode: debug
+
+grpc:
+  Port: 50057
+  Timeout: 15
+  Time: 5
+  MaxConnectionIdle: 30
+  MaxConnectionAge: 5  
+
+kafka:
+  Brokers: ["localhost:9091"]
+
+mail:
+  MailDomain: localhost
+  MailHostSend: localhost
+  MailPortSend: 1025
+  MailUsername: 
+  MailPassword: 
+  MailEncryption: none
+  MailFromName: DoVanTu
+  MailFromAddress:

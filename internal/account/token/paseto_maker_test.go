@@ -15,14 +15,14 @@ func TestCreateToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, maker)
 
-	payload, err := NewPayload(uuid.New(), "vantu", time.Minute*5)
+	payload, err := NewPayload(uuid.New(), uuid.New(), time.Minute*5)
 	require.NoError(t, err)
 
-	token, tokenPayload, err := maker.CreateToken(payload.ID , payload.Email, payload.ExpiredAt.Sub(payload.IssuedAt))
+	token, tokenPayload, err := maker.CreateToken(payload.ID, payload.UserID, payload.ExpiredAt.Sub(payload.IssuedAt))
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, tokenPayload)
-	require.Equal(t, payload.Email, tokenPayload.Email)
+	require.Equal(t, payload.UserID, tokenPayload.UserID)
 	require.Equal(t, payload.IssuedAt.Unix(), tokenPayload.IssuedAt.Unix())
 	require.Equal(t, payload.ExpiredAt.Unix(), tokenPayload.ExpiredAt.Unix())
 	require.NotEmpty(t, tokenPayload.ID)
@@ -34,9 +34,9 @@ func TestVerifyToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, maker)
 
-	payload, err := NewPayload(uuid.New(), "vantu", time.Minute*5)
-
-	token, newPayload, err := maker.CreateToken(payload.ID , payload.Email, payload.ExpiredAt.Sub(payload.IssuedAt))
+	payload, err := NewPayload(uuid.New(), uuid.New(), time.Minute*5)
+	require.NoError(t, err)
+	token, newPayload, err := maker.CreateToken(payload.ID, payload.UserID, payload.ExpiredAt.Sub(payload.IssuedAt))
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.NotEmpty(t, newPayload)
@@ -44,7 +44,7 @@ func TestVerifyToken(t *testing.T) {
 	payload, err = maker.VerifyToken(token)
 	require.NoError(t, err)
 	require.NotEmpty(t, payload)
-	require.Equal(t, newPayload.Email, payload.Email)
+	require.Equal(t, newPayload.UserID, payload.UserID)
 	require.Equal(t, newPayload.IssuedAt.Unix(), payload.IssuedAt.Unix())
 	require.Equal(t, newPayload.ExpiredAt.Unix(), payload.ExpiredAt.Unix())
 	require.NotEmpty(t, payload.ID)
@@ -56,9 +56,10 @@ func TestInvalidToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, maker)
 
-	payload, err := NewPayload(uuid.New(), "vantu", time.Minute*5)
+	payload, err := NewPayload(uuid.New(), uuid.New(), time.Minute*5)
+	require.NoError(t, err)
 
-	token, _, err := maker.CreateToken(payload.ID , payload.Email, payload.ExpiredAt.Sub(payload.IssuedAt))
+	token, _, err := maker.CreateToken(payload.ID, payload.UserID, payload.ExpiredAt.Sub(payload.IssuedAt))
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -79,9 +80,10 @@ func TestExpiredToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, maker)
 
-	payload, err := NewPayload(uuid.New(), "vantu", -time.Minute*5)
+	payload, err := NewPayload(uuid.New(), uuid.New(), -time.Minute*5)
+	require.NoError(t, err)
 
-	token, _, err := maker.CreateToken(payload.ID , payload.Email, payload.ExpiredAt.Sub(payload.IssuedAt))
+	token, _, err := maker.CreateToken(payload.ID, payload.UserID, payload.ExpiredAt.Sub(payload.IssuedAt))
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
