@@ -51,3 +51,8 @@ redisCache:
     Capacity: 600000
     BucketSize: 2
     MaxIterations: 20
+  
+
+Oauth:
+  ClientID: 358423557514-u4otn6113690dvdb3drod20rcppbl7pl.apps.googleusercontent.com
+  ClientSecret: "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"
