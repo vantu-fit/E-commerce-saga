@@ -25,6 +25,7 @@ const (
 	ServiceAccount_CreateAccount_FullMethodName = "/pb.ServiceAccount/CreateAccount"
 	ServiceAccount_Login_FullMethodName         = "/pb.ServiceAccount/Login"
 	ServiceAccount_GetAccount_FullMethodName    = "/pb.ServiceAccount/GetAccount"
+	ServiceAccount_Oauth_FullMethodName         = "/pb.ServiceAccount/Oauth"
 )
 
 // ServiceAccountClient is the client API for ServiceAccount service.
@@ -36,6 +37,7 @@ type ServiceAccountClient interface {
 	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*CreateAccountResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	GetAccount(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetAccountResponse, error)
+	Oauth(ctx context.Context, in *OauthRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 }
 
 type serviceAccountClient struct {
@@ -91,6 +93,15 @@ func (c *serviceAccountClient) GetAccount(ctx context.Context, in *emptypb.Empty
 	return out, nil
 }
 
+func (c *serviceAccountClient) Oauth(ctx context.Context, in *OauthRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, ServiceAccount_Oauth_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceAccountServer is the server API for ServiceAccount service.
 // All implementations must embed UnimplementedServiceAccountServer
 // for forward compatibility
@@ -100,6 +111,7 @@ type ServiceAccountServer interface {
 	CreateAccount(context.Context, *CreateAccountRequest) (*CreateAccountResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	GetAccount(context.Context, *emptypb.Empty) (*GetAccountResponse, error)
+	Oauth(context.Context, *OauthRequest) (*LoginResponse, error)
 	mustEmbedUnimplementedServiceAccountServer()
 }
 
@@ -121,6 +133,9 @@ func (UnimplementedServiceAccountServer) Login(context.Context, *LoginRequest) (
 }
 func (UnimplementedServiceAccountServer) GetAccount(context.Context, *emptypb.Empty) (*GetAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAccount not implemented")
+}
+func (UnimplementedServiceAccountServer) Oauth(context.Context, *OauthRequest) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Oauth not implemented")
 }
 func (UnimplementedServiceAccountServer) mustEmbedUnimplementedServiceAccountServer() {}
 
@@ -225,6 +240,24 @@ func _ServiceAccount_GetAccount_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ServiceAccount_Oauth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OauthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceAccountServer).Oauth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceAccount_Oauth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceAccountServer).Oauth(ctx, req.(*OauthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ServiceAccount_ServiceDesc is the grpc.ServiceDesc for ServiceAccount service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -251,6 +284,10 @@ var ServiceAccount_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAccount",
 			Handler:    _ServiceAccount_GetAccount_Handler,
+		},
+		{
+			MethodName: "Oauth",
+			Handler:    _ServiceAccount_Oauth_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

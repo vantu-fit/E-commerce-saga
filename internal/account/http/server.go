@@ -19,7 +19,6 @@ import (
 type HTTPGatewayServer struct {
 	config      *config.Config
 	store       db.Store
-	producer    kafkaClient.Producer
 	grpcServer  *grpc.Server
 	httpGateway *http.Server
 }
@@ -29,6 +28,7 @@ func NewHTTPGatewayServer(
 	store db.Store,
 	producer kafkaClient.Producer,
 ) (*HTTPGatewayServer, error) {
+	auth := NewOAuth(config.Oauth.ClientID, config.Oauth.ClientSecret)
 	ctx := context.Background()
 	var err error
 	server := &HTTPGatewayServer{
@@ -59,6 +59,7 @@ func NewHTTPGatewayServer(
 
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
+	mux.HandleFunc("/api/v1/account/google/login", auth.Login)
 
 	server.httpGateway = &http.Server{
 		Handler: logger.HttpLogger(mux),

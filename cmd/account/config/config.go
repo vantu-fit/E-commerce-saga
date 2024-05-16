@@ -17,6 +17,7 @@ type Config struct {
 	Migration Migration
 	PasetoConfig PasetoConfig
 	RedisCache RedisCache `mapstructure:"RedisCache"`
+	Oauth     Oauth `mapstructure:"Oauth"`
 }
 
 type HTTP struct {
@@ -67,6 +68,11 @@ type CuckooFilter struct {
 	Capacity      int64
 	BucketSize    int64
 	MaxIterations int64
+}
+
+type Oauth struct {
+	ClientID     string
+	ClientSecret string
 }
 
 

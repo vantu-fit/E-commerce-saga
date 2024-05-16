@@ -159,6 +159,33 @@ curl --location --request POST 'http://localhost/api/v1/media/upload' \
 -F "data=@PATH_TO_IMAGE_FILE3" \
 ```
 
+### Oauth
+```bash
+http://localhost/api/v1/account/google/login
+
+```
+You will be redirected to google login page. After login, you will be redirected to the page with the access token.
+Then you recieve the access token, refresh token, session_id. If you already register with this email, you will connect the account with google account. If you don't have an account with this email, a new account will be created with defaut password is `email` and random number phone.
+The response will be like this:
+```json
+{
+    "access_token": "v2.local.WHetpWF4D19BspRdGIBQOhrxsfrEt4TugWbNwMC1qk1IImBsqqImGVGD6VfiLxhT_AS_UHtNC5VioPnhdTkjDDiXC_nzIL7kRk90Msi5DLKwhEZA6psOstiLXqD0YT4Hl5E9Z65DxJ17N7Yf-D8GZOgUVPKBoeH2APV4oM_8vPPtHVuNzr5l4sI0WTYzy8ma2q1K_dY6dnVtEDFte__JAczOGOooES-pzdd4r4yFh4IFr84c3iklBeyeEdKawwlGonjbCyEb5IDCUig7bsGg1raAjB0CwjAuGo51JzZrreLLwj5VF3l5.bnVsbA",
+    "refresh_token": "v2.local.ngg-N_yjnLFxjxi0F2p_rtyhjRuSYH-ybqlbToUwCwxJj9yM_bStmrq6sMDizn4yOBE6m-0ajD-uOAhLAjbvbw7IORaUCwpoaxJ4HSSUd6NXvHbe-q1eFahM6YXxKxcjnABXaCljNncynObbXFA7uxE_pVbaxG2DuSQvcadPqvJdPXEiOlid22A5K0MlMLoWluqbAPGlFt7ngtRAVMZS_VCtefqB3i8BVl5ZOe3DJEsjrzVQmSBarPsC_cMX72rg720eV2WiKhWWEdhkAUrc-G9s2BCdvYXRtphBQK3v4caWvjBmmw6c.bnVsbA",
+    "session_id": "d0960230-c11e-4fd2-a7ab-92e09a904fbc",
+    "account": {
+        "id": "76cba792-15e7-4f06-ad74-a0b20343de42",
+        "first_name": "Đỗ Văn",
+        "last_name": "Tư",
+        "email": "dotu30257@gmail.com",
+        "phone_number": "5064331243",
+        "active": true,
+        "updated_at": "2024-05-16T15:31:18.812755Z",
+        "created_at": "2024-05-16T15:31:18.812755Z"
+    }
+}
+```
+
+
 ### Benchmark
 ```bash
 ./1kpurchases.sh
@@ -178,6 +205,7 @@ No. | API | Method | Authorization required | Description
 1 | [/api/v1/account/register](http://localhost/api/v1/account/register) | POST | false | Register account
 2 | [/api/v1/account/login](http://localhost/api/v1/account/login) | POST | false | Login account
 3 | [/api/v1/account/customer/personal](http://localhost/api/v1/account/customer/personal) | GET | true | Get personal information
+4 | [/api/v1/account/google/login](http://localhost/api/v1/account/google/login) | GET | false | Login with google account
 
 ### Product service
 No. | API | Method | Authorization required | Description
@@ -186,6 +214,7 @@ No. | API | Method | Authorization required | Description
 2 | [/api/v1/products](http://localhost/api/v1/products) | POST | true | Create a product
 3 | [/api/v1/products/:id](http://localhost/api/v1/products) | PUT | true | Update product detail
 4 | [/api/v1/categories](http://localhost/api/v1/categories) | POST | true | Create a category
+5 | [/api/v1/products/check](http://localhost/api/v1/products/check) | GET | false | Check product inventory
 
 ### Order service
 No. | API | Method | Authorization required | Description
