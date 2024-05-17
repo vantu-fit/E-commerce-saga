@@ -26,6 +26,11 @@ mailhog:
 	docker compose -f ./docker-compose-mailhog.yml up
 mailhog-down:
 	docker compose -f ./docker-compose-mailhog.yml down
+elastic:
+	docker compose -f ./docker-compose-elasticsearch.yml up
+elastic-down:
+	docker compose -f ./docker-compose-elasticsearch.yml down
+
 
 account:
 	go run ./cmd/account/main.go
