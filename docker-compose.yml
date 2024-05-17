@@ -70,6 +70,20 @@ services:
       - api_network
     # volumes:
     #   - ./data/media_db:/var/lib/postgresql/data
+
+  comment_db:
+    container_name: comment_db
+    image: postgres:15-alpine
+    ports:
+      - "5437:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=comment_db
+    networks:
+      - api_network
+    # volumes:
+    #   - ./data/payment_db:/var/lib/postgresql/data
   
 
   redis-node-1:
@@ -329,7 +343,15 @@ services:
       - account_db
       - redis-cluster-creator
       - init-kafka
-    command: ["/app/main"]
+      - mailhog
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+    
+    command: ["/app/wait-rediscluster.sh"]
     networks:
         - api_network
     restart:
@@ -350,7 +372,15 @@ services:
       - product_db
       - init-kafka
       - redis-cluster-creator
-    command: ["/app/main"]
+      - media_service
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+      - comment_service
+    command: ["/app/wait-rediscluster.sh"]
     networks:
         - api_network
     restart:
@@ -437,9 +467,6 @@ services:
       dockerfile: ./build/docker/dockerfile-media
     depends_on:
       - account_service
-      - product_service
-      - order_service
-      - payment_service
       - init-kafka
       - redis-cluster-creator
     command: ["/app/main"]
@@ -483,6 +510,28 @@ services:
         on-failure
     networks:
         - api_network
+
+  comment_service:
+    container_name: comment_service
+    build:
+      context: .
+      dockerfile: ./build/docker/dockerfile-comment
+    depends_on:
+      - comment_db
+      - init-kafka
+      - redis-cluster-creator
+      - account_service
+    command: ["/app/main"]
+    networks:
+        - api_network
+    restart:
+        on-failure
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.comment_service-http.rule=PathPrefix(`/api/v1/comment`)"
+      - "traefik.http.routers.comment_service-http.entrypoints=web"
+      - "traefik.http.routers.comment_service-http.service=comment_service-http"
+      - "traefik.http.services.comment_service-http.loadbalancer.server.port=8080"
 
 networks:
   api_network:

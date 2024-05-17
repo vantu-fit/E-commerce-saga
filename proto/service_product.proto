@@ -70,8 +70,18 @@ message GetProductByIDRequest {
   string id = 1;
 }
 
+message Image {
+  repeated string url = 1;
+}
+
+message Video {
+  repeated string url = 1;
+}
+
 message GetProductByIDResponse {
   Product product = 1;
+  optional Image images = 2;
+  optional Video videos = 3;
 }
 
 message UpdateProductRequest {

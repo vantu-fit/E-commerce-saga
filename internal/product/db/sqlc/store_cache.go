@@ -35,7 +35,7 @@ func NewStoreCache(store Store, lc cache.LocalCache, rc cache.RedisCache) Store 
 	if !exist {
 		err = rc.CFReserve(context.Background(), cuckooFilter, 1000, 4, 1000)
 		if err != nil {
-			log.Error().Msgf("Product: failed to reserve cuckoo filter, err: %s", err)
+			log.Fatal().Msgf("Product: failed to reserve cuckoo filter, err: %s", err)
 			return store
 		}
 

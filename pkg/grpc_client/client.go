@@ -12,6 +12,7 @@ import (
 type Client struct {
 	AccountClient pb.ServiceAccountClient
 	ProductClient pb.ServiceProductClient
+	MediaClient   pb.ServiceMediaClient
 }
 
 func NewClient() *Client {
@@ -60,6 +61,29 @@ func (c *Client) RunProductClient(address string, doneCh chan struct{}) error {
 		return err
 	}
 	log.Info().Msg("Product client ping: " + ping.Message)
+	<-doneCh
+	return nil
+}
+
+func (c *Client) RunMediaClient(address string, doneCh chan struct{}) error {
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return err
+	}
+	defer func() {
+		conn.Close()
+		log.Info().Msg("Media client is closed")
+	}()
+	log.Info().Msg("Media client is running to connect to : " + address)
+	c.MediaClient = pb.NewServiceMediaClient(conn)
+	ping, err := c.MediaClient.Ping(context.Background(), &pb.PingRequest{
+		Message: "ping",
+	})
+	if err != nil {
+		log.Error().Msgf("Media client can not ping: %v", err)
+		return err
+	}
+	log.Info().Msg("Media client ping: " + ping.Message)
 	<-doneCh
 	return nil
 }

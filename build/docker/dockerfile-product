@@ -10,5 +10,6 @@ RUN mkdir -p cmd/product/config
 COPY ./cmd/product/config/docker.yml ./cmd/product/config/config.yml
 COPY ./internal/product/db/migration ./internal/product/db/migration
 
+
 EXPOSE 8080 50051
 ENTRYPOINT ["/app/main"]

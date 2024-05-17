@@ -13,6 +13,7 @@ Microservice architecture with Saga Orchestration pattern
   - Orchestrator service: responsible for managing the saga orchestration.
   - Media service: responsible for managing media files.
   - Mail service: responsible for sending emails.
+  - Comment service: responsible for managing comments and rating for recommendation system.
 - Database: 5 databases are used in this project.
   - Account database (PostgreSQL 15): responsible for storing user accounts, tokens.
   - Product database (PostgreSQL 15): responsible for storing products, categories.
@@ -236,6 +237,15 @@ No. | API | Method | Authorization required | Description
 1 | [/api/v1/media/upload](http://localhost/api/v1/media/upload) | POST | true | Upload media file
 2 | [http://localhost:9000/images/:id](http://localhost:9000/images/:id) | GET | false | Use CDN to get media file or iframe to display image
 3 | [http://localhost:9000/videos/:id](http://localhost:9000/videos/:id) | GET | false | Use CDN to get media file or iframe to display video
+### Comment Serive (Nested Set Model)
+No. | API | Method | Authorization required | Description
+--- | --- | --- | --- | ---
+1 | [/api/v1/comment](http://localhost/api/v1/comment) | POST | true | Create a comment
+2 | [/api/v1/comment/:id](http://localhost/api/v1/comment/:id) | GET | false | Get comments with id
+3 | [/api/v1/comment/:id](http://localhost/api/v1/comment/:id) | PUT | true | Update comment
+4 | [/api/v1/comment/:id](http://localhost/api/v1/comment/:id) | DELETE | true | Delete comments
+5 | [/api/v1/comment/product/:id](http://localhost/api/v1/comment/product/:id) | GET | false | Get comments of product with id
+
 ## Monitor
 
 ### Kafkdrop

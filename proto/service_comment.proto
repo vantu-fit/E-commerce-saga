@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+package pb;
+
+// Removed the import statement for "account.proto"
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "service_account.proto";
+
+option go_package = "github.com/vantu-fit/saga-pattern/pb";
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+        title: "Simple Bank API";
+        version: "1.0";
+        contact: {
+            name: "Vantufit";
+            url: "https://github.com/grpc-ecosystem/grpc-gateway";
+            email: "dotu30257@gmail.com";
+        };
+    };
+};
+
+message Comment {
+    string id = 1;
+    string product_id = 2;
+    string content = 3;
+    string parent_id = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+
+}
+
+
+message CreateCommentRequest {
+    string product_id = 1;
+    string content = 2;
+    optional string parent_id = 3;
+}
+
+message CreateCommentResponse {
+    Comment comment = 1;
+}
+
+message GetCommentRequest {
+    string id = 1;
+}
+
+message GetCommentResponse {
+    repeated Comment comment = 1;
+}
+
+message UpdateCommentRequest {
+    string id = 1;
+    string content = 2;
+}
+
+message UpdateCommentResponse {
+    Comment comment = 1;
+}
+
+message DeleteCommentRequest {
+    string id = 1;
+}
+
+message DeleteCommentResponse {
+    Comment comment = 1;
+}
+
+message GetCommentByProductRequest {
+    string product_id = 1;
+}
+
+message GetCommentByProductResponse {
+    repeated Comment comment = 1;
+}
+
+service CommentService {
+    rpc Ping (PingRequest) returns (PingResponse){
+        option (google.api.http) = {
+                  post: "/api/v1/comment/ping"
+                  body: "*"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          description: "Use this API to test the connection.";
+          summary: "Test connection";
+        };
+    }
+
+    rpc CreateComment(CreateCommentRequest) returns (CreateCommentResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/comment";
+            body: "*";
+        };
+    }
+
+    rpc GetComment(GetCommentRequest) returns (GetCommentResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/comment/{id}";
+        };
+    }
+
+    rpc UpdateComment(UpdateCommentRequest) returns (UpdateCommentResponse) {
+        option (google.api.http) = {
+            put: "/api/v1/comment/{id}";
+            body: "*";
+        };
+    }
+
+    rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse) {
+        option (google.api.http) = {
+            delete: "/api/v1/comment/{id}";
+        };
+    }
+    rpc GetCommentByProduct(GetCommentByProductRequest) returns (GetCommentByProductResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/comment/product/{product_id}";
+        };
+    }
+}
+
+

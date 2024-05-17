@@ -8,21 +8,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/vantu-fit/saga-pattern/cmd/product/config"
-	"github.com/vantu-fit/saga-pattern/internal/product/service"
-	db "github.com/vantu-fit/saga-pattern/internal/product/db/sqlc"
-	"github.com/vantu-fit/saga-pattern/internal/product/event"
-	"github.com/vantu-fit/saga-pattern/internal/product/grpc"
-	"github.com/vantu-fit/saga-pattern/internal/product/http"
-	"github.com/vantu-fit/saga-pattern/pkg/cache"
+	"github.com/vantu-fit/saga-pattern/cmd/comment/config"
+	db "github.com/vantu-fit/saga-pattern/internal/comment/db/sqlc"
+	"github.com/vantu-fit/saga-pattern/internal/comment/grpc"
+	"github.com/vantu-fit/saga-pattern/internal/comment/http"
+	"github.com/vantu-fit/saga-pattern/internal/comment/service"
 
 	grpcclient "github.com/vantu-fit/saga-pattern/pkg/grpc_client"
-	kafkaClient "github.com/vantu-fit/saga-pattern/pkg/kafka"
 	migrate_db "github.com/vantu-fit/saga-pattern/pkg/migrate"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -44,7 +40,7 @@ func main() {
 	log.Info().Msg("Start product service")
 
 	// load config
-	cfgFile, err := config.LoadConfig("./cmd/product/config/config")
+	cfgFile, err := config.LoadConfig("./cmd/comment/config/config")
 	if err != nil {
 		log.Fatal().Msgf("Load config: %v", err)
 	}
@@ -65,7 +61,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Msgf("Parse pgx pool config: %v", err)
 	}
-	poolConfig.MaxConns = 500// Set maximum connections in the pool
+	poolConfig.MaxConns = 500 // Set maximum connections in the pool
 	conn, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
@@ -77,45 +73,45 @@ func main() {
 
 	store := db.NewStore(conn)
 
-	// create local cache
-	localCache, err := cache.NewLocalCache(ctx, cfg.LocalCache.ExpirationTime)
-	if err != nil {
-		log.Fatal().Msgf("Create local cache: %v", err)
-	}
+	// // create local cache
+	// localCache, err := cache.NewLocalCache(ctx, cfg.LocalCache.ExpirationTime)
+	// if err != nil {
+	// 	log.Fatal().Msgf("Create local cache: %v", err)
+	// }
 
-	// create redis cache
-	redisClient := redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:         cfg.RedisCache.Address,
-		Password:      cfg.RedisCache.Password,
-		PoolSize:      cfg.RedisCache.PoolSize,
-		MaxRetries:    cfg.RedisCache.MaxRetries,
-		ReadOnly:      true,
-		RouteRandomly: true,
-	})
+	// // create redis cache
+	// redisClient := redis.NewClusterClient(&redis.ClusterOptions{
+	// 	Addrs:         cfg.RedisCache.Address,
+	// 	Password:      cfg.RedisCache.Password,
+	// 	PoolSize:      cfg.RedisCache.PoolSize,
+	// 	MaxRetries:    cfg.RedisCache.MaxRetries,
+	// 	ReadOnly:      true,
+	// 	RouteRandomly: true,
+	// })
 
-	// check redis connection
-	err = redisClient.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
-		return shard.Ping(ctx).Err()
-	})
-	if err != nil {
-		log.Fatal().Msgf("Redis ping: %v", err)
-	}
+	// // check redis connection
+	// err = redisClient.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
+	// 	return shard.Ping(ctx).Err()
+	// })
+	// if err != nil {
+	// 	log.Fatal().Msgf("Redis ping: %v", err)
+	// }
 
-	redisCache := cache.NewRedisCache(redisClient, time.Duration(cfg.RedisCache.ExpirationTime)*time.Second)
-	
-	// create store cache
-	storeCache := db.NewStoreCache(store, localCache, redisCache)
-	
+	// redisCache := cache.NewRedisCache(redisClient, time.Duration(cfg.RedisCache.ExpirationTime)*time.Second)
+
+	// // create store cache
+	// storeCache := db.NewStoreCache(store, localCache, redisCache)
+
 	// create product service
-	productService := service.NewService(storeCache)
+	commentService := service.NewService(store)
 	// create kafka client
-	producer := kafkaClient.NewProducer(cfg.Kafka.Brokers)
-	consumer := kafkaClient.NewConsumerGroup(cfg.Kafka.Brokers)
+	// producer := kafkaClient.NewProducer(cfg.Kafka.Brokers)
+	// consumer := kafkaClient.NewConsumerGroup(cfg.Kafka.Brokers)
 
 	// create product service
 
 	// create event handler
-	eventHandler := event.NewEventHandler(cfg, consumer, producer , &productService)
+	// eventHandler := event.NewEventHandler(cfg, consumer, producer , &commentService)
 
 	// create grpc client
 	grpcClient := grpcclient.NewClient()
@@ -127,15 +123,8 @@ func main() {
 		}
 	}()
 
-	// run grpc client
-	go func() {
-		if err := grpcClient.RunMediaClient(cfg.GRPCClient.Media, doneCh); err != nil {
-			log.Fatal().Msgf("Run grpc client: %v", err)
-		}
-	}()
-
 	// create grpc server
-	grpcServer, err := grpc.NewServer(cfg, storeCache, grpcClient , &productService)
+	grpcServer, err := grpc.NewServer(cfg, store, grpcClient, &commentService)
 	if err != nil {
 		log.Fatal().Msgf("Create grpc server: %v", err)
 	}
@@ -149,7 +138,7 @@ func main() {
 	}()
 
 	// create http gateway server
-	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, storeCache , grpcClient,&productService)
+	HTTPGatewayServer, err := http.NewHTTPGatewayServer(cfg, store, grpcClient, &commentService)
 	if err != nil {
 		log.Fatal().Msgf("Create http gateway server: %v", err)
 	}
@@ -163,7 +152,7 @@ func main() {
 	}()
 
 	// run event handler
-	eventHandler.Run(ctx)
+	// eventHandler.Run(ctx)
 
 	// graceful shutdown
 	<-ctx.Done()

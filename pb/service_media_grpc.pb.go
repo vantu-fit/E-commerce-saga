@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	ServiceMedia_Ping_FullMethodName        = "/pb.ServiceMedia/Ping"
 	ServiceMedia_Upload_FullMethodName      = "/pb.ServiceMedia/Upload"
 	ServiceMedia_DeleteImage_FullMethodName = "/pb.ServiceMedia/DeleteImage"
 	ServiceMedia_GetImageUrl_FullMethodName = "/pb.ServiceMedia/GetImageUrl"
@@ -29,6 +30,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceMediaClient interface {
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error)
 	DeleteImage(ctx context.Context, in *DeleteImageRequest, opts ...grpc.CallOption) (*DeleteImageResponse, error)
 	GetImageUrl(ctx context.Context, in *GetUrlRequest, opts ...grpc.CallOption) (*GetUrlResponse, error)
@@ -41,6 +43,15 @@ type serviceMediaClient struct {
 
 func NewServiceMediaClient(cc grpc.ClientConnInterface) ServiceMediaClient {
 	return &serviceMediaClient{cc}
+}
+
+func (c *serviceMediaClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	out := new(PingResponse)
+	err := c.cc.Invoke(ctx, ServiceMedia_Ping_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *serviceMediaClient) Upload(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error) {
@@ -83,6 +94,7 @@ func (c *serviceMediaClient) GetVideoUrl(ctx context.Context, in *GetUrlRequest,
 // All implementations must embed UnimplementedServiceMediaServer
 // for forward compatibility
 type ServiceMediaServer interface {
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	Upload(context.Context, *UploadRequest) (*UploadResponse, error)
 	DeleteImage(context.Context, *DeleteImageRequest) (*DeleteImageResponse, error)
 	GetImageUrl(context.Context, *GetUrlRequest) (*GetUrlResponse, error)
@@ -94,6 +106,9 @@ type ServiceMediaServer interface {
 type UnimplementedServiceMediaServer struct {
 }
 
+func (UnimplementedServiceMediaServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
 func (UnimplementedServiceMediaServer) Upload(context.Context, *UploadRequest) (*UploadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Upload not implemented")
 }
@@ -117,6 +132,24 @@ type UnsafeServiceMediaServer interface {
 
 func RegisterServiceMediaServer(s grpc.ServiceRegistrar, srv ServiceMediaServer) {
 	s.RegisterService(&ServiceMedia_ServiceDesc, srv)
+}
+
+func _ServiceMedia_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceMediaServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceMedia_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceMediaServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ServiceMedia_Upload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -198,6 +231,10 @@ var ServiceMedia_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "pb.ServiceMedia",
 	HandlerType: (*ServiceMediaServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Ping",
+			Handler:    _ServiceMedia_Ping_Handler,
+		},
 		{
 			MethodName: "Upload",
 			Handler:    _ServiceMedia_Upload_Handler,
