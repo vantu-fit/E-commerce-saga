@@ -31,6 +31,32 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
+func request_ServiceMedia_Ping_0(ctx context.Context, marshaler runtime.Marshaler, client ServiceMediaClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq PingRequest
+	var metadata runtime.ServerMetadata
+
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.Ping(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ServiceMedia_Ping_0(ctx context.Context, marshaler runtime.Marshaler, server ServiceMediaServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq PingRequest
+	var metadata runtime.ServerMetadata
+
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.Ping(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_ServiceMedia_Upload_0(ctx context.Context, marshaler runtime.Marshaler, client ServiceMediaClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq UploadRequest
 	var metadata runtime.ServerMetadata
@@ -219,6 +245,31 @@ func local_request_ServiceMedia_GetVideoUrl_0(ctx context.Context, marshaler run
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterServiceMediaHandlerFromEndpoint instead.
 func RegisterServiceMediaHandlerServer(ctx context.Context, mux *runtime.ServeMux, server ServiceMediaServer) error {
 
+	mux.Handle("POST", pattern_ServiceMedia_Ping_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pb.ServiceMedia/Ping", runtime.WithHTTPPathPattern("/api/v1/products/ping"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ServiceMedia_Ping_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ServiceMedia_Ping_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_ServiceMedia_Upload_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -360,6 +411,28 @@ func RegisterServiceMediaHandler(ctx context.Context, mux *runtime.ServeMux, con
 // "ServiceMediaClient" to call the correct interceptors.
 func RegisterServiceMediaHandlerClient(ctx context.Context, mux *runtime.ServeMux, client ServiceMediaClient) error {
 
+	mux.Handle("POST", pattern_ServiceMedia_Ping_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pb.ServiceMedia/Ping", runtime.WithHTTPPathPattern("/api/v1/products/ping"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ServiceMedia_Ping_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ServiceMedia_Ping_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_ServiceMedia_Upload_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -452,6 +525,8 @@ func RegisterServiceMediaHandlerClient(ctx context.Context, mux *runtime.ServeMu
 }
 
 var (
+	pattern_ServiceMedia_Ping_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "products", "ping"}, ""))
+
 	pattern_ServiceMedia_Upload_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "media", "upload"}, ""))
 
 	pattern_ServiceMedia_DeleteImage_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "v1", "media", "image", "id"}, ""))
@@ -462,6 +537,8 @@ var (
 )
 
 var (
+	forward_ServiceMedia_Ping_0 = runtime.ForwardResponseMessage
+
 	forward_ServiceMedia_Upload_0 = runtime.ForwardResponseMessage
 
 	forward_ServiceMedia_DeleteImage_0 = runtime.ForwardResponseMessage

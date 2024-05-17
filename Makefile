@@ -3,6 +3,7 @@ PRODUCT_DB_URL=postgresql://postgres:postgres@localhost:5432/product_db?sslmode=
 ORDER_DB_URL=postgresql://postgres:postgres@localhost:5432/order_db?sslmode=disable
 PAYMENT_DB_URL=postgresql://postgres:postgres@localhost:5432/payment_db?sslmode=disable
 MEDIA_DB_URL=postgresql://postgres:postgres@localhost:5432/media_db?sslmode=disable
+COMMENT_DB_URL=postgresql://postgres:postgres@localhost:5432/comment_db?sslmode=disable
 
 
 protoc:
@@ -84,6 +85,14 @@ migrate-media-down:
 sqlc-media:
 	sqlc generate -f sqlc/media.yml
 
+comment:
+	go run ./cmd/comment/main.go
+migrate-comment-up:
+	migrate -path internal/comment/db/migration -database "$(COMMENT_DB_URL)" -verbose up
+migrate-comment-down:
+	migrate -path internal/comment/db/migration -database "$(COMMENT_DB_URL)" -verbose down
+sqlc-comment:
+	sqlc generate -f sqlc/comment.yml
 
 
 

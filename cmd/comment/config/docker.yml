@@ -30,8 +30,8 @@ logger:
   Level: info
 
 postgres:
-  DNS_URL: postgresql://admin:secret@product_db:5432/product_db?sslmode=disable
-  Migration: file://internal/product/db/migration
+  DNS_URL: postgresql://admin:secret@comment_db:5432/comment_db?sslmode=disable
+  Migration: file://internal/comment/db/migration
 
 migration:
   Enable: true

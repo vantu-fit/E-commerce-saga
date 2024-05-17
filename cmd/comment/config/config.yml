@@ -1,16 +1,16 @@
 service:
-  Name: product_service
+  Name: comment_service
   Mode: Development
   Debug: true
   ReadTimeout: 5
   WriteTimeout: 5
 
 http:
-  Port: 8081
+  Port: 8087
   Mode: debug
 
 grpc:
-  Port: 50052
+  Port: 50056
   Timeout: 15
   Time: 5
   MaxConnectionIdle: 30
@@ -30,8 +30,8 @@ logger:
   Level: info
 
 postgres:
-  DNS_URL: postgresql://postgres:postgres@localhost:5432/product_db?sslmode=disable
-  Migration: file://internal/product/db/migration
+  DNS_URL: postgresql://postgres:postgres@localhost:5432/comment_db?sslmode=disable
+  Migration: file://internal/comment/db/migration
 
 migration:
   Enable: true
