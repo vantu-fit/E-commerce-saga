@@ -1,3 +1,13 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE "categories" (
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "name" varchar(255) NOT NULL,
+  "description" varchar(255) NOT NULL,
+  "updated_at" timestamptz NOT NULL DEFAULT (now()),
+  "created_at" timestamptz NOT NULL DEFAULT (now())
+);
+
 CREATE TABLE "products" (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   "id_category" uuid NOT NULL,
@@ -26,3 +36,7 @@ INSERT INTO "products" ("id_category", "id_account", "name", "description", "bra
 ((SELECT id FROM categories WHERE name = 'Clothing'), 'f47ac10b-58cc-4372-a567-0e02b2c3d479', 'Jeans', 'Comfortable blue jeans', 'BrandZ', 4999, 200),
 ((SELECT id FROM categories WHERE name = 'Furniture'), 'f47ac10b-58cc-4372-a567-0e02b2c3d479', 'Office Chair', 'Ergonomic office chair', 'BrandA', 8999, 30);
 
+
+select * from products;
+
+select * from categories;
