@@ -1,0 +1,59 @@
+version: "3.9"
+
+services: 
+  product_db:
+    container_name: product_db
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: product_db
+    command: postgres -c 'max_connections=1000'
+    networks:
+      - api_network
+
+  elasticsearch:
+    image: elasticsearch:8.13.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    restart: on-failure
+    networks:
+      - api_network
+
+  kibana:
+    image: kibana:8.13.4
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    restart: on-failure
+    networks:
+      - api_network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.1
+    volumes:
+      - ./build/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./build/logstash/postgresql-42.7.3.jar:/usr/share/logstash/postgresql-42.7.3.jar
+    depends_on:
+      - product_db
+      - elasticsearch
+    restart: on-failure
+    networks:
+      - api_network
+
+networks:
+  api_network:
+    driver: bridge
