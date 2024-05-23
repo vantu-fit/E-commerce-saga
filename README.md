@@ -4,7 +4,7 @@ Microservice architecture with Saga Orchestration pattern
 
 ## Technical stack:
 - Traefik:  edge proxy that is responsible for external traffic routing and internal grpc load-balancing.
-- Services: 8 services are implemented in this project.
+- Services: 9 services are implemented in this project.
   - Account service: responsible for managing user accounts, tokens.
   - Product service: responsible for managing products, categories.
   - Order service: responsible for managing orders.
@@ -30,6 +30,15 @@ Microservice architecture with Saga Orchestration pattern
   - Used for storing media files.
 - MailHog:  email testing tool.
   - Used for testing email sending.
+- Kafdrop:  Kafka UI for monitoring Kafka.
+  - Used for monitoring Kafka.
+- ElasticSearch:  distributed, RESTful search and analytics engine.
+  - Used for search information of products and categories.
+- Kibana:  data visualization dashboard for ElasticSearch.
+  - Used for monitoring ElasticSearch.
+- Logstash:  server-side data processing pipeline that ingests data from multiple sources simultaneously.
+  - Used for syncing data from `Product_db` to ElasticSearch with index `products`.
+
 
 ## Architecture diagram
 ![saga-orchestration](docs/saga-architecturex2.png)
@@ -159,7 +168,68 @@ curl --location --request POST 'http://localhost/api/v1/media/upload' \
 -F "data=@PATH_TO_IMAGE_FILE2" \
 -F "data=@PATH_TO_IMAGE_FILE3" \
 ```
-
+### Elasticsearch
+```bash
+curl --location --request GET 'http://localhost/api/v1/elasticsearch/products/_search' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+      "query": {
+        "match_all": {}
+      },
+      "_source": ["name", "price"]
+    }'   
+```
+You can search with other query like this:
+```json
+{
+  "query": {
+    "range": {
+      "price": {
+        "gte": 5000,
+        "lte": 10000
+      }
+    }
+  }
+}
+```
+```json
+{
+  "query": {
+    "match": {
+      "category.name": "Electronics"
+    }
+  },
+  "_source": ["name", "price"]
+}
+```
+```json
+{
+  "query": {
+    "match": {
+      "name": "chair"
+    }
+  },
+  "sort": [
+    { "price": { "order": "desc" } }
+  ]
+}
+```
+```json
+{
+  "query": {
+    "match": {
+      "name": "chair"
+    }
+  },
+  "sort": [
+    { "price": { "order": "desc" } }
+  ]
+}
+```
+And Search with query params method GET:
+```bash
+curl --location --request GET 'http://localhost/api/v1/elasticsearch/products/_search?query={"query":{"match":{"name":"chair"}},"sort":[{"price":{"order":"desc"}}]}'
+```
 ### Oauth
 ```bash
 http://localhost/api/v1/account/google/login
@@ -245,7 +315,10 @@ No. | API | Method | Authorization required | Description
 3 | [/api/v1/comment/:id](http://localhost/api/v1/comment/:id) | PUT | true | Update comment
 4 | [/api/v1/comment/:id](http://localhost/api/v1/comment/:id) | DELETE | true | Delete comments
 5 | [/api/v1/comment/product/:id](http://localhost/api/v1/comment/product/:id) | GET | false | Get comments of product with id
-
+### Elasticsearch
+No. | API | Method | Authorization required | Description
+--- | --- | --- | --- | ---
+1 | [/api/v1/elasticsearch/products/_search](http://localhost/api/v1/elasticsearch/products/_search) | GET | false | Search products
 ## Monitor
 
 ### Kafkdrop
@@ -259,6 +332,15 @@ No. | API | Method | Authorization required | Description
 
 ### MailHog
 [http://localhost:8025](http://localhost:8025)
+
+### Kibana
+[http://localhost:5601](http://localhost:5601)
+
+## Status
+- We Implementing Websocket for real-time notification, chat, and other features [70%]
+- Recommendation base rating and comment (Collaborative Filtering), But too loss too data [50%]
+
+
 
 ## TODO
 - [ ] API for categories
